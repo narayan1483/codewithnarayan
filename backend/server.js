@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { initDatabase, closeDatabase } from "./db.js";
 import notesRouter from "./routes/notes.js";
 import contactRouter from "./routes/contact.js";
 import adminRouter from "./routes/admin.js";
@@ -35,6 +36,28 @@ app.use((err, req, res, next) => {
   res.status(400).json({ error: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ code.withnarayan backend running at http://localhost:${PORT}`);
+// ─── Start Server After Database is Ready ────────────────────────
+async function start() {
+  try {
+    await initDatabase();
+    app.listen(PORT, () => {
+      console.log(`✅ code.withnarayan backend running at http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Failed to connect to MySQL:", err.message);
+    console.error("   Make sure DATABASE_URL is set in your .env file");
+    process.exit(1);
+  }
+}
+
+// Graceful shutdown
+process.on("SIGINT", async () => {
+  await closeDatabase();
+  process.exit(0);
 });
+process.on("SIGTERM", async () => {
+  await closeDatabase();
+  process.exit(0);
+});
+
+start();

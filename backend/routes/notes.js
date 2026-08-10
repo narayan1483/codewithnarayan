@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import db from "../db.js";
+import pool from "../db.js";
 import { requireAdmin } from "../middleware/adminAuth.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -33,9 +33,13 @@ const router = express.Router();
 
 // GET /api/notes — list all notes
 router.get("/", async (req, res) => {
-  await db.read();
-  const notes = [...db.data.notes].sort((a, b) => b.id - a.id);
-  res.json(notes);
+  try {
+    const [rows] = await pool.query("SELECT * FROM notes ORDER BY id DESC");
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching notes:", err.message);
+    res.status(500).json({ error: "Failed to load notes" });
+  }
 });
 
 // POST /api/notes — publish a new note (admin only). PDF file OR a Drive link — either works.
@@ -47,98 +51,127 @@ router.post("/", requireAdmin, upload.single("pdf"), async (req, res) => {
     return res.status(400).json({ error: "title, subject, pages, level, and description are required" });
   }
 
-  await db.read();
-  const note = {
-    id: db.data.nextNoteId++,
-    title: title.trim(),
-    subject: subject.trim(),
-    pages: Number(pages),
-    level,
-    description: description.trim(),
-    file_path: req.file ? req.file.filename : null,
-    file_name: req.file ? req.file.originalname : null,
-    drive_link: driveLink ? driveLink.trim() : null,
-    downloads: 0,
-    rating: 5.0,
-    created_at: new Date().toISOString(),
-  };
-  db.data.notes.push(note);
-  await db.write();
+  try {
+    const [result] = await pool.query(
+      `INSERT INTO notes (title, subject, pages, level, description, file_path, file_name, drive_link, downloads, rating, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 5.0, NOW())`,
+      [
+        title.trim(),
+        subject.trim(),
+        Number(pages),
+        level,
+        description.trim(),
+        req.file ? req.file.filename : null,
+        req.file ? req.file.originalname : null,
+        driveLink ? driveLink.trim() : null,
+      ]
+    );
 
-  res.status(201).json(note);
+    const [rows] = await pool.query("SELECT * FROM notes WHERE id = ?", [result.insertId]);
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    if (req.file) fs.unlinkSync(req.file.path);
+    console.error("Error creating note:", err.message);
+    res.status(500).json({ error: "Failed to create note" });
+  }
 });
 
 // PUT /api/notes/:id — edit an existing note (admin only). Replaces file only if a new one is sent.
 router.put("/:id", requireAdmin, upload.single("pdf"), async (req, res) => {
-  await db.read();
   const id = Number(req.params.id);
-  const note = db.data.notes.find((n) => n.id === id);
-  if (!note) {
+
+  try {
+    const [existing] = await pool.query("SELECT * FROM notes WHERE id = ?", [id]);
+    if (existing.length === 0) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: "Note not found" });
+    }
+
+    const note = existing[0];
+    const { title, subject, pages, level, description, driveLink, removeFile } = req.body;
+
+    const updatedTitle = title !== undefined ? title.trim() : note.title;
+    const updatedSubject = subject !== undefined ? subject.trim() : note.subject;
+    const updatedPages = pages !== undefined ? Number(pages) : note.pages;
+    const updatedLevel = level !== undefined ? level : note.level;
+    const updatedDescription = description !== undefined ? description.trim() : note.description;
+    const updatedDriveLink = driveLink !== undefined ? (driveLink.trim() || null) : note.drive_link;
+
+    let updatedFilePath = note.file_path;
+    let updatedFileName = note.file_name;
+
+    // If a new file was uploaded, replace the old one
+    if (req.file) {
+      if (note.file_path) {
+        const oldPath = path.join(uploadsDir, note.file_path);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      updatedFilePath = req.file.filename;
+      updatedFileName = req.file.originalname;
+    } else if (removeFile === "true") {
+      if (note.file_path) {
+        const oldPath = path.join(uploadsDir, note.file_path);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      updatedFilePath = null;
+      updatedFileName = null;
+    }
+
+    await pool.query(
+      `UPDATE notes SET title=?, subject=?, pages=?, level=?, description=?, file_path=?, file_name=?, drive_link=? WHERE id=?`,
+      [updatedTitle, updatedSubject, updatedPages, updatedLevel, updatedDescription, updatedFilePath, updatedFileName, updatedDriveLink, id]
+    );
+
+    const [rows] = await pool.query("SELECT * FROM notes WHERE id = ?", [id]);
+    res.json(rows[0]);
+  } catch (err) {
     if (req.file) fs.unlinkSync(req.file.path);
-    return res.status(404).json({ error: "Note not found" });
+    console.error("Error updating note:", err.message);
+    res.status(500).json({ error: "Failed to update note" });
   }
-
-  const { title, subject, pages, level, description, driveLink, removeFile } = req.body;
-
-  if (title !== undefined) note.title = title.trim();
-  if (subject !== undefined) note.subject = subject.trim();
-  if (pages !== undefined) note.pages = Number(pages);
-  if (level !== undefined) note.level = level;
-  if (description !== undefined) note.description = description.trim();
-  if (driveLink !== undefined) note.drive_link = driveLink.trim() || null;
-
-  // If a new file was uploaded, replace the old one
-  if (req.file) {
-    if (note.file_path) {
-      const oldPath = path.join(uploadsDir, note.file_path);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-    }
-    note.file_path = req.file.filename;
-    note.file_name = req.file.originalname;
-  } else if (removeFile === "true") {
-    if (note.file_path) {
-      const oldPath = path.join(uploadsDir, note.file_path);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-    }
-    note.file_path = null;
-    note.file_name = null;
-  }
-
-  await db.write();
-  res.json(note);
 });
 
 // GET /api/notes/:id/download — download the PDF and bump the counter
 router.get("/:id/download", async (req, res) => {
-  await db.read();
-  const note = db.data.notes.find((n) => n.id === Number(req.params.id));
-  if (!note) return res.status(404).json({ error: "Note not found" });
-  if (!note.file_path) return res.status(404).json({ error: "No file uploaded for this note yet" });
+  try {
+    const [rows] = await pool.query("SELECT * FROM notes WHERE id = ?", [Number(req.params.id)]);
+    if (rows.length === 0) return res.status(404).json({ error: "Note not found" });
 
-  const filePath = path.join(uploadsDir, note.file_path);
-  if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File missing on server" });
+    const note = rows[0];
+    if (!note.file_path) return res.status(404).json({ error: "No file uploaded for this note yet" });
 
-  note.downloads = (note.downloads ?? 0) + 1;
-  await db.write();
+    const filePath = path.join(uploadsDir, note.file_path);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File missing on server" });
 
-  res.download(filePath, note.file_name || "note.pdf");
+    await pool.query("UPDATE notes SET downloads = downloads + 1 WHERE id = ?", [note.id]);
+
+    res.download(filePath, note.file_name || "note.pdf");
+  } catch (err) {
+    console.error("Error downloading note:", err.message);
+    res.status(500).json({ error: "Download failed" });
+  }
 });
 
 // DELETE /api/notes/:id — remove a note (admin only)
 router.delete("/:id", requireAdmin, async (req, res) => {
-  await db.read();
   const id = Number(req.params.id);
-  const note = db.data.notes.find((n) => n.id === id);
-  if (!note) return res.status(404).json({ error: "Note not found" });
 
-  if (note.file_path) {
-    const filePath = path.join(uploadsDir, note.file_path);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  try {
+    const [rows] = await pool.query("SELECT * FROM notes WHERE id = ?", [id]);
+    if (rows.length === 0) return res.status(404).json({ error: "Note not found" });
+
+    const note = rows[0];
+    if (note.file_path) {
+      const filePath = path.join(uploadsDir, note.file_path);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    await pool.query("DELETE FROM notes WHERE id = ?", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting note:", err.message);
+    res.status(500).json({ error: "Failed to delete note" });
   }
-  db.data.notes = db.data.notes.filter((n) => n.id !== id);
-  await db.write();
-
-  res.json({ success: true });
 });
 
 export default router;
