@@ -1,0 +1,15 @@
+node_modules/
+**/node_modules/
+
+# frontend
+frontend/dist/
+frontend/.env
+
+# backend
+backend/data.json
+backend/data.sqlite*
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/.env
+
+.DS_Store

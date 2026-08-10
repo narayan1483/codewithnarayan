@@ -1,0 +1,112 @@
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const ADMIN_KEY = "codewithnarayan_admin_password";
+
+const normalize = (n) => ({ ...n, desc: n.description, driveLink: n.drive_link });
+
+export function getAdminPassword() {
+  return localStorage.getItem(ADMIN_KEY) || "";
+}
+
+export function clearAdminSession() {
+  localStorage.removeItem(ADMIN_KEY);
+}
+
+export async function adminLogin(password) {
+  const res = await fetch(`${API_BASE}/api/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Login failed");
+  }
+  localStorage.setItem(ADMIN_KEY, password);
+  return true;
+}
+
+export async function fetchNotes() {
+  const res = await fetch(`${API_BASE}/api/notes`);
+  if (!res.ok) throw new Error("Failed to load notes");
+  const data = await res.json();
+  return data.map(normalize);
+}
+
+export async function createNote(form) {
+  const body = new FormData();
+  body.append("title", form.title);
+  body.append("subject", form.subject);
+  body.append("pages", form.pages);
+  body.append("level", form.level);
+  body.append("description", form.desc);
+  if (form.pdfFile) body.append("pdf", form.pdfFile);
+  if (form.driveLink) body.append("driveLink", form.driveLink);
+
+  const res = await fetch(`${API_BASE}/api/notes`, {
+    method: "POST",
+    headers: { "x-admin-password": getAdminPassword() },
+    body,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to publish note");
+  }
+  const data = await res.json();
+  return normalize(data);
+}
+
+export async function updateNote(id, form) {
+  const body = new FormData();
+  if (form.title !== undefined) body.append("title", form.title);
+  if (form.subject !== undefined) body.append("subject", form.subject);
+  if (form.pages !== undefined) body.append("pages", form.pages);
+  if (form.level !== undefined) body.append("level", form.level);
+  if (form.desc !== undefined) body.append("description", form.desc);
+  if (form.driveLink !== undefined) body.append("driveLink", form.driveLink);
+  if (form.pdfFile) body.append("pdf", form.pdfFile);
+  if (form.removeFile) body.append("removeFile", "true");
+
+  const res = await fetch(`${API_BASE}/api/notes/${id}`, {
+    method: "PUT",
+    headers: { "x-admin-password": getAdminPassword() },
+    body,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to update note");
+  }
+  const data = await res.json();
+  return normalize(data);
+}
+
+export async function deleteNote(id) {
+  const res = await fetch(`${API_BASE}/api/notes/${id}`, {
+    method: "DELETE",
+    headers: { "x-admin-password": getAdminPassword() },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to delete note");
+  }
+  return res.json();
+}
+
+export function downloadNoteUrl(id) {
+  return `${API_BASE}/api/notes/${id}/download`;
+}
+
+export async function sendContactMessage(form) {
+  const res = await fetch(`${API_BASE}/api/contact`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to send message");
+  }
+  return res.json();
+}
