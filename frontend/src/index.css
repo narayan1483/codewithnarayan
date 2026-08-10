@@ -12,6 +12,7 @@
   --input-bg: #FAFAF7;
   --skeleton: #F0F0EC;
   --skeleton-shine: #F8F8F5;
+  --card-bg: #FFFFFF;
 }
 
 [data-theme="dark"] {
@@ -26,10 +27,12 @@
   --input-bg: #1E212B;
   --skeleton: #20232C;
   --skeleton-shine: #262A35;
+  --card-bg: #191C24;
 }
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -46,6 +49,7 @@ body {
   color: var(--text-primary);
   font-family: 'Inter', sans-serif;
   transition: background-color .2s ease, color .2s ease;
+  overflow-x: hidden;
 }
 
 input::placeholder,
@@ -54,7 +58,8 @@ textarea::placeholder {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -67,8 +72,13 @@ textarea::placeholder {
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes modalSlideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 @keyframes popIn {
-  from { transform: scale(0.96) translateY(8px); opacity: 0; }
+  from { transform: scale(0.95) translateY(12px); opacity: 0; }
   to { transform: scale(1) translateY(0); opacity: 1; }
 }
 
@@ -123,11 +133,40 @@ textarea::placeholder {
 .chip {
   transition: all .15s ease;
 }
+.chip:active {
+  transform: scale(0.96);
+}
 
+/* Founder tagline animation */
+.founder-tag {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 8px 0 14px;
+  font-weight: 600;
+  animation: slideUp 700ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.founder-name {
+  background: linear-gradient(90deg, #FF5F6D, #FFC371, #7BDFF6, #9B51E0, #4CAF50);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  animation: gradientShift 3.5s linear infinite;
+}
+
+/* Mobile responsive optimizations */
 @media (max-width: 680px) {
   .desktop-nav { display: none !important; }
   .mobile-toggle { display: flex !important; }
   .bottom-nav { display: flex !important; }
-  body { padding-bottom: 58px; }
-  .chat-fab { bottom: 74px !important; }
+  body { padding-bottom: 64px; }
+  .chat-fab { bottom: 80px !important; }
 }

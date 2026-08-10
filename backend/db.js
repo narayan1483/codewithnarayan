@@ -47,7 +47,18 @@ export async function initDatabase() {
       )
     `);
 
-    console.log("✅ MySQL tables ready");
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        topic VARCHAR(255) NOT NULL,
+        subject VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("✅ MySQL tables ready (notes, messages, requests)");
   } finally {
     conn.release();
   }

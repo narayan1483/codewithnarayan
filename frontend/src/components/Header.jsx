@@ -1,22 +1,59 @@
 import React, { useState } from "react";
-import { PenTool, ShoppingBag, Menu, Plus, Sun, Moon, Lock, LogOut } from "lucide-react";
+import { PenTool, ShoppingBag, Menu, Plus, Sun, Moon, Lock, LogOut, BarChart2, Download, BookOpen, MessageSquare, Inbox } from "lucide-react";
 import { NAV_LINKS } from "../data.js";
 
-export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, isAdmin, onAdminLoginClick, onAdminLogout }) {
+export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, isAdmin, onAdminLoginClick, onAdminLogout, stats }) {
   const [navOpen, setNavOpen] = useState(false);
 
   return (
     <div
       id="home"
       style={{
-        borderBottom: "1.5px solid var(--border)",
         position: "sticky",
         top: 0,
         background: "rgba(255,255,255,0.92)",
         backdropFilter: "blur(8px)",
+        borderBottom: "1.5px solid var(--border)",
         zIndex: 40,
       }}
     >
+      {/* Admin Analytics Bar */}
+      {isAdmin && stats && (
+        <div
+          style={{
+            background: "linear-gradient(90deg, #14151A 0%, #1E2029 100%)",
+            color: "#fff",
+            padding: "6px 16px",
+            fontSize: 12,
+            fontFamily: "'JetBrains Mono', monospace",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+            borderBottom: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, color: "#B4FF39" }}>
+            <BarChart2 size={14} /> Admin Live Analytics
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <BookOpen size={12} color="#60A5FA" /> Notes: <strong style={{ color: "#fff" }}>{stats.totalNotes}</strong>
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <Download size={12} color="#34D399" /> Downloads: <strong style={{ color: "#fff" }}>{stats.totalDownloads}</strong>
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <MessageSquare size={12} color="#FBBF24" /> Messages: <strong style={{ color: "#fff" }}>{stats.totalMessages}</strong>
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <Inbox size={12} color="#F472B6" /> Requests: <strong style={{ color: "#fff" }}>{stats.totalRequests}</strong>
+            </span>
+          </div>
+        </div>
+      )}
+
       <div
         style={{
           maxWidth: 1080,

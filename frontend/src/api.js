@@ -110,3 +110,34 @@ export async function sendContactMessage(form) {
   }
   return res.json();
 }
+
+// ─── Feature #5: Note Requests API ────────────────────────────────
+export async function sendNoteRequest(form) {
+  const res = await fetch(`${API_BASE}/api/requests`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to submit note request");
+  }
+  return res.json();
+}
+
+export async function fetchNoteRequests() {
+  const res = await fetch(`${API_BASE}/api/requests`, {
+    headers: { "x-admin-password": getAdminPassword() },
+  });
+  if (!res.ok) throw new Error("Failed to load requests");
+  return res.json();
+}
+
+// ─── Feature #6: Admin Analytics API ──────────────────────────────
+export async function fetchAdminStats() {
+  const res = await fetch(`${API_BASE}/api/admin/stats`, {
+    headers: { "x-admin-password": getAdminPassword() },
+  });
+  if (!res.ok) throw new Error("Failed to load stats");
+  return res.json();
+}

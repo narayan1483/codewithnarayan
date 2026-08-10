@@ -5,6 +5,7 @@ import NotesSection from "./components/NotesSection.jsx";
 import NoteModal from "./components/NoteModal.jsx";
 import AddNoteModal from "./components/AddNoteModal.jsx";
 import AdminLoginModal from "./components/AdminLoginModal.jsx";
+import RequestNoteModal from "./components/RequestNoteModal.jsx";
 import AboutSection from "./components/AboutSection.jsx";
 import ContactSection from "./components/ContactSection.jsx";
 import Footer from "./components/Footer.jsx";
@@ -13,7 +14,17 @@ import TrendingSection from "./components/TrendingSection.jsx";
 import BundlesSection from "./components/BundlesSection.jsx";
 import BottomNav from "./components/BottomNav.jsx";
 import { useToasts, ToastStack } from "./components/Toast.jsx";
-import { fetchNotes, createNote, updateNote, deleteNote, sendContactMessage, getAdminPassword, clearAdminSession } from "./api.js";
+import {
+  fetchNotes,
+  createNote,
+  updateNote,
+  deleteNote,
+  sendContactMessage,
+  sendNoteRequest,
+  fetchAdminStats,
+  getAdminPassword,
+  clearAdminSession,
+} from "./api.js";
 
 const WISHLIST_KEY = "codewithnarayan_wishlist";
 
@@ -30,7 +41,9 @@ export default function App() {
   const [addOpen, setAddOpen] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [adminLoginOpen, setAdminLoginOpen] = useState(false);
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(() => !!getAdminPassword());
+  const [adminStats, setAdminStats] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem("codewithnarayan_theme") || "light");
   const { toasts, showToast } = useToasts();
@@ -53,18 +66,41 @@ export default function App() {
     }
   }, []);
 
+  // Fetch admin stats whenever admin logs in
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAdminStats()
+        .then(setAdminStats)
+        .catch(() => {});
+    } else {
+      setAdminStats(null);
+    }
+  }, [isAdmin, notes]);
+
   const loadNotes = async () => {
     setLoading(true);
     setLoadError(false);
     try {
       const data = await fetchNotes();
       setNotes(data);
+
+      // Check URL query param for deep-linking (Feature #3: e.g., ?note=5)
+      const params = new URLSearchParams(window.location.search);
+      const noteId = params.get("note");
+      if (noteId) {
+        const found = data.find((n) => String(n.id) === String(noteId));
+        if (found) setOpenNote(found);
+      }
     } catch (e) {
       setLoadError(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const totalDownloads = useMemo(() => {
+    return notes.reduce((sum, n) => sum + Number(n.downloads || 0), 0);
+  }, [notes]);
 
   const toggleWishlist = (id) => {
     setWishlist((prev) => {
@@ -129,6 +165,11 @@ export default function App() {
     showToast("Message sent — we'll get back to you soon", "success");
   };
 
+  const handleRequestSubmit = async (form) => {
+    await sendNoteRequest(form);
+    showToast("Note request submitted successfully!", "success");
+  };
+
   const handleDeleteNote = async (id) => {
     try {
       await deleteNote(id);
@@ -156,8 +197,15 @@ export default function App() {
         isAdmin={isAdmin}
         onAdminLoginClick={() => setAdminLoginOpen(true)}
         onAdminLogout={handleAdminLogout}
+        stats={adminStats}
       />
-      <Hero query={query} setQuery={setQuery} />
+      <Hero
+        query={query}
+        setQuery={setQuery}
+        totalNotes={notes.length}
+        totalDownloads={totalDownloads}
+        onRequestClick={() => setRequestModalOpen(true)}
+      />
       <TrendingSection notes={notes} onOpen={setOpenNote} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
 
       {loadError ? (
@@ -182,6 +230,7 @@ export default function App() {
           setSortBy={setSortBy}
           wishlist={wishlist}
           onToggleWishlist={toggleWishlist}
+          onRequestClick={() => setRequestModalOpen(true)}
         />
       )}
 
@@ -208,6 +257,11 @@ export default function App() {
           editingNote={editingNote}
         />
       )}
+      <RequestNoteModal
+        open={requestModalOpen}
+        onClose={() => setRequestModalOpen(false)}
+        onSubmitSuccess={handleRequestSubmit}
+      />
       <AdminLoginModal open={adminLoginOpen} onClose={() => setAdminLoginOpen(false)} onLoginSuccess={() => setIsAdmin(true)} />
       <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
       <BottomNav onChatToggle={() => setChatOpen((v) => !v)} wishlistCount={wishlist.size} />
