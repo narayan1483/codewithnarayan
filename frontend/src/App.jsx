@@ -308,7 +308,7 @@ export default function App() {
         />
       )}
 
-      <RoadmapSection onFilterNotesBySubject={(subj) => { setActive(subj); scrollToSection("notes"); }} />
+      <RoadmapSection onFilterNotesBySubject={(subj) => { setActive(subj); scrollToSection("notes"); }} isAdmin={isAdmin} />
       <CheatsheetSection onCopyToast={showToast} isAdmin={isAdmin} />
       <QuizSection onToast={showToast} isAdmin={isAdmin} />
       <BundlesSection allNotes={notes} onOpenBundle={openBundle} />

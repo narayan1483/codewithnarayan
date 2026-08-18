@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { CheckCircle2, Circle, Target, Flame, Trophy, Award, Sparkles, BookOpen, ChevronRight, X, HelpCircle, ExternalLink } from "lucide-react";
+import { CheckCircle2, Circle, Target, Flame, Trophy, Award, Sparkles, BookOpen, ChevronRight, X, HelpCircle, ExternalLink, Plus, Pencil, Trash2, Check, Layers } from "lucide-react";
 
-const ROADMAP_DATA = {
+const INITIAL_ROADMAP_DATA = {
   dsa: {
+    id: "dsa",
     title: "DSA Placement Roadmap",
     icon: "🌲",
     color: "#3D5AFE",
@@ -91,6 +92,7 @@ const ROADMAP_DATA = {
     ],
   },
   web: {
+    id: "web",
     title: "Fullstack Web Dev 2026",
     icon: "🌐",
     color: "#00B37E",
@@ -171,6 +173,7 @@ const ROADMAP_DATA = {
     ],
   },
   java: {
+    id: "java",
     title: "Java & Backend Master",
     icon: "☕",
     color: "#FF8A3D",
@@ -243,6 +246,7 @@ const ROADMAP_DATA = {
     ],
   },
   core: {
+    id: "core",
     title: "Core CS Subjects for Interviews",
     icon: "💻",
     color: "#A855F7",
@@ -316,30 +320,70 @@ const ROADMAP_DATA = {
   },
 };
 
-const STORAGE_KEY = "codewithnarayan_roadmap_progress";
+const ROADMAP_STORAGE_KEY = "codewithnarayan_custom_roadmaps";
+const PROGRESS_STORAGE_KEY = "codewithnarayan_roadmap_progress";
 
-export default function RoadmapSection({ onFilterNotesBySubject }) {
+export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
+  const [roadmaps, setRoadmaps] = useState(() => {
+    try {
+      const saved = localStorage.getItem(ROADMAP_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : INITIAL_ROADMAP_DATA;
+    } catch {
+      return INITIAL_ROADMAP_DATA;
+    }
+  });
+
   const [activeTrack, setActiveTrack] = useState("dsa");
   const [selectedStep, setSelectedStep] = useState(null);
   const [completed, setCompleted] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(PROGRESS_STORAGE_KEY);
       return saved ? new Set(JSON.parse(saved)) : new Set();
     } catch {
       return new Set();
     }
   });
 
+  // Admin Topic Modal (Add / Edit)
+  const [topicModalOpen, setTopicModalOpen] = useState(false);
+  const [isEditingTopic, setIsEditingTopic] = useState(false);
+  const [editingTopicId, setEditingTopicId] = useState(null);
+  const [topicForm, setTopicForm] = useState({
+    name: "",
+    level: "Beginner",
+    subtopicsText: "",
+    questionsText: "",
+    noteLinkSubject: "dsa",
+  });
+
+  // Admin New Track Modal
+  const [trackModalOpen, setTrackModalOpen] = useState(false);
+  const [trackForm, setTrackForm] = useState({
+    id: "",
+    title: "",
+    icon: "🚀",
+    color: "#3D5AFE",
+    description: "",
+  });
+
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
+      localStorage.setItem(ROADMAP_STORAGE_KEY, JSON.stringify(roadmaps));
+    } catch (e) {}
+  }, [roadmaps]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify([...completed]));
     } catch (e) {}
   }, [completed]);
 
-  const track = ROADMAP_DATA[activeTrack];
-  const totalInTrack = track.steps.length;
-  const doneInTrack = track.steps.filter((s) => completed.has(s.id)).length;
-  const progressPercent = Math.round((doneInTrack / totalInTrack) * 100);
+  const trackKeys = Object.keys(roadmaps);
+  const currentKey = roadmaps[activeTrack] ? activeTrack : trackKeys[0] || "dsa";
+  const track = roadmaps[currentKey] || { title: "Roadmap", icon: "🎯", color: "#3D5AFE", description: "", steps: [] };
+  const totalInTrack = track.steps ? track.steps.length : 0;
+  const doneInTrack = track.steps ? track.steps.filter((s) => completed.has(s.id)).length : 0;
+  const progressPercent = totalInTrack > 0 ? Math.round((doneInTrack / totalInTrack) * 100) : 0;
 
   const toggleStep = (id, e) => {
     if (e) e.stopPropagation();
@@ -349,6 +393,132 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
       else next.add(id);
       return next;
     });
+  };
+
+  // Admin: Open Add Topic
+  const openAddTopicModal = () => {
+    setTopicForm({
+      name: "",
+      level: "Beginner",
+      subtopicsText: "",
+      questionsText: "",
+      noteLinkSubject: currentKey,
+    });
+    setIsEditingTopic(false);
+    setEditingTopicId(null);
+    setTopicModalOpen(true);
+  };
+
+  // Admin: Open Edit Topic
+  const openEditTopicModal = (step, e) => {
+    if (e) e.stopPropagation();
+    setTopicForm({
+      name: step.name || "",
+      level: step.level || "Beginner",
+      subtopicsText: (step.subtopics || []).join("\n"),
+      questionsText: (step.interviewQuestions || []).join("\n"),
+      noteLinkSubject: step.noteLinkSubject || currentKey,
+    });
+    setIsEditingTopic(true);
+    setEditingTopicId(step.id);
+    setTopicModalOpen(true);
+  };
+
+  // Admin: Save Topic (Add or Edit)
+  const handleSaveTopic = () => {
+    if (!topicForm.name.trim()) return;
+
+    const subtopics = topicForm.subtopicsText
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const interviewQuestions = topicForm.questionsText
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (isEditingTopic) {
+      setRoadmaps((prev) => {
+        const updatedSteps = (prev[currentKey].steps || []).map((s) => {
+          if (s.id === editingTopicId) {
+            return {
+              ...s,
+              name: topicForm.name,
+              level: topicForm.level,
+              subtopics: subtopics.length ? subtopics : ["Core concepts"],
+              interviewQuestions: interviewQuestions.length ? interviewQuestions : ["Common interview questions"],
+              noteLinkSubject: topicForm.noteLinkSubject,
+            };
+          }
+          return s;
+        });
+        return {
+          ...prev,
+          [currentKey]: {
+            ...prev[currentKey],
+            steps: updatedSteps,
+          },
+        };
+      });
+    } else {
+      const newStep = {
+        id: `${currentKey}_${Date.now()}`,
+        name: topicForm.name,
+        level: topicForm.level,
+        subtopics: subtopics.length ? subtopics : ["Core concepts"],
+        interviewQuestions: interviewQuestions.length ? interviewQuestions : ["Common interview questions"],
+        noteLinkSubject: topicForm.noteLinkSubject,
+      };
+
+      setRoadmaps((prev) => ({
+        ...prev,
+        [currentKey]: {
+          ...prev[currentKey],
+          steps: [...(prev[currentKey].steps || []), newStep],
+        },
+      }));
+    }
+
+    setTopicModalOpen(false);
+    setSelectedStep(null);
+  };
+
+  // Admin: Delete Topic
+  const handleDeleteTopic = (stepId, e) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this roadmap topic?")) return;
+
+    setRoadmaps((prev) => ({
+      ...prev,
+      [currentKey]: {
+        ...prev[currentKey],
+        steps: (prev[currentKey].steps || []).filter((s) => s.id !== stepId),
+      },
+    }));
+    if (selectedStep && selectedStep.id === stepId) setSelectedStep(null);
+  };
+
+  // Admin: Add New Track
+  const handleCreateTrack = () => {
+    if (!trackForm.title.trim() || !trackForm.id.trim()) return;
+    const cleanId = trackForm.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    setRoadmaps((prev) => ({
+      ...prev,
+      [cleanId]: {
+        id: cleanId,
+        title: trackForm.title,
+        icon: trackForm.icon || "🎯",
+        color: trackForm.color || "#3D5AFE",
+        description: trackForm.description || "Comprehensive learning track.",
+        steps: [],
+      },
+    }));
+
+    setActiveTrack(cleanId);
+    setTrackForm({ id: "", title: "", icon: "🚀", color: "#3D5AFE", description: "" });
+    setTrackModalOpen(false);
   };
 
   return (
@@ -379,7 +549,7 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
         </p>
       </div>
 
-      {/* Track Selector Tabs */}
+      {/* Track Selector Tabs & Admin Create Track */}
       <div
         style={{
           display: "flex",
@@ -387,40 +557,65 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
           overflowX: "auto",
           scrollbarWidth: "none",
           paddingBottom: 12,
-          justifyContent: "center",
+          justifyContent: "space-between",
+          alignItems: "center",
           flexWrap: "wrap",
         }}
       >
-        {Object.entries(ROADMAP_DATA).map(([key, data]) => {
-          const isActive = activeTrack === key;
-          return (
-            <button
-              key={key}
-              onClick={() => {
-                setActiveTrack(key);
-                setSelectedStep(null);
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "10px 18px",
-                borderRadius: 10,
-                border: `1.5px solid ${isActive ? data.color : "var(--border)"}`,
-                background: isActive ? data.color : "var(--surface)",
-                color: isActive ? "#FFFFFF" : "var(--text-primary)",
-                fontFamily: "'Sora', sans-serif",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <span>{data.icon}</span>
-              <span>{data.title}</span>
-            </button>
-          );
-        })}
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {Object.entries(roadmaps).map(([key, data]) => {
+            const isActive = currentKey === key;
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  setActiveTrack(key);
+                  setSelectedStep(null);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "10px 18px",
+                  borderRadius: 10,
+                  border: `1.5px solid ${isActive ? data.color : "var(--border)"}`,
+                  background: isActive ? data.color : "var(--surface)",
+                  color: isActive ? "#FFFFFF" : "var(--text-primary)",
+                  fontFamily: "'Sora', sans-serif",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <span>{data.icon}</span>
+                <span>{data.title}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {isAdmin && (
+          <button
+            onClick={() => setTrackModalOpen(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#14151A",
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: 8,
+              padding: "9px 14px",
+              fontFamily: "'Sora', sans-serif",
+              fontSize: 12.5,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            <Plus size={14} /> Add New Track (Admin)
+          </button>
+        )}
       </div>
 
       {/* Roadmap Card Container */}
@@ -435,7 +630,7 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
           boxShadow: "0 10px 30px -10px rgba(0,0,0,0.06)",
         }}
       >
-        {/* Track Header & Progress */}
+        {/* Track Header, Progress & Admin Add Topic */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 20 }}>
           <div>
             <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 4px" }}>
@@ -446,29 +641,53 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
             </p>
           </div>
 
-          {/* Progress Bar Badge */}
-          <div style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: 12, padding: "10px 16px", minWidth: 200 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, marginBottom: 6 }}>
-              <span style={{ color: "var(--text-secondary)" }}>Your Progress</span>
-              <span style={{ color: track.color }}>{doneInTrack}/{totalInTrack} ({progressPercent}%)</span>
-            </div>
-            <div style={{ height: 8, background: "var(--border)", borderRadius: 999, overflow: "hidden" }}>
-              <div
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            {isAdmin && (
+              <button
+                onClick={openAddTopicModal}
                 style={{
-                  height: "100%",
-                  width: `${progressPercent}%`,
-                  background: track.color,
-                  borderRadius: 999,
-                  transition: "width 0.3s ease",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  border: `1.5px dashed ${track.color}`,
+                  background: `${track.color}10`,
+                  color: track.color,
+                  fontFamily: "'Sora', sans-serif",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: "pointer",
                 }}
-              />
+              >
+                <Plus size={14} /> Add Topic to {track.title}
+              </button>
+            )}
+
+            {/* Progress Bar Badge */}
+            <div style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: 12, padding: "10px 16px", minWidth: 200 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, marginBottom: 6 }}>
+                <span style={{ color: "var(--text-secondary)" }}>Your Progress</span>
+                <span style={{ color: track.color }}>{doneInTrack}/{totalInTrack} ({progressPercent}%)</span>
+              </div>
+              <div style={{ height: 8, background: "var(--border)", borderRadius: 999, overflow: "hidden" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${progressPercent}%`,
+                    background: track.color,
+                    borderRadius: 999,
+                    transition: "width 0.3s ease",
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Topic Checklists with Clickable Detail View */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 10 }}>
-          {track.steps.map((step, idx) => {
+          {track.steps && track.steps.map((step, idx) => {
             const isDone = completed.has(step.id);
             return (
               <div
@@ -510,7 +729,25 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
                     {idx + 1}. {step.name}
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={(e) => openEditTopicModal(step, e)}
+                        title="Edit Topic (Admin)"
+                        style={{ background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 5, padding: "3px 5px", cursor: "pointer", display: "flex" }}
+                      >
+                        <Pencil size={11} color="#4F46E5" />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteTopic(step.id, e)}
+                        title="Delete Topic (Admin)"
+                        style={{ background: "#FFF1F2", border: "1px solid #FFD5DA", borderRadius: 5, padding: "3px 5px", cursor: "pointer", display: "flex" }}
+                      >
+                        <Trash2 size={11} color="#FF4D6D" />
+                      </button>
+                    </>
+                  )}
                   <span
                     style={{
                       fontSize: 10.5,
@@ -587,7 +824,7 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
                 <BookOpen size={15} color={track.color} /> Core Subtopics to Master:
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {selectedStep.subtopics.map((st, i) => (
+                {(selectedStep.subtopics || []).map((st, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text-secondary)", background: "var(--bg-secondary)", padding: "8px 12px", borderRadius: 8 }}>
                     <span style={{ color: track.color, fontWeight: 700 }}>•</span> {st}
                   </div>
@@ -601,7 +838,7 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
                 <HelpCircle size={15} color="#FF4D6D" /> Top MNC Interview Questions:
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {selectedStep.interviewQuestions.map((iq, i) => (
+                {(selectedStep.interviewQuestions || []).map((iq, i) => (
                   <div key={i} style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", background: "rgba(255, 77, 109, 0.06)", border: "1px solid rgba(255, 77, 109, 0.2)", padding: "8px 12px", borderRadius: 8 }}>
                     Q{i + 1}: {iq}
                   </div>
@@ -669,7 +906,145 @@ export default function RoadmapSection({ onFilterNotesBySubject }) {
           </div>
         </div>
       )}
+
+      {/* Admin Add / Edit Topic Modal */}
+      {topicModalOpen && (
+        <div onClick={() => setTopicModalOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(16,18,24,0.65)", backdropFilter: "blur(4px)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: 16, maxWidth: 540, width: "100%", padding: 24, animation: "popIn .15s ease", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 700, margin: 0 }}>
+                {isEditingTopic ? "Edit Roadmap Topic" : `Add Topic to ${track.title}`}
+              </h3>
+              <button onClick={() => setTopicModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={18} /></button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-muted)", display: "block", marginBottom: 4 }}>TOPIC TITLE</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Graph Algorithms (Dijkstra, Topological Sort)"
+                  value={topicForm.name}
+                  onChange={(e) => setTopicForm((f) => ({ ...f, name: e.target.value }))}
+                  style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-muted)", display: "block", marginBottom: 4 }}>DIFFICULTY LEVEL</label>
+                  <select
+                    value={topicForm.level}
+                    onChange={(e) => setTopicForm((f) => ({ ...f, level: e.target.value }))}
+                    style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--surface)", color: "var(--text-primary)" }}
+                  >
+                    <option>Beginner</option>
+                    <option>Intermediate</option>
+                    <option>Advanced</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-muted)", display: "block", marginBottom: 4 }}>LINK TO NOTE SUBJECT</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. dsa, web, java, dbms"
+                    value={topicForm.noteLinkSubject}
+                    onChange={(e) => setTopicForm((f) => ({ ...f, noteLinkSubject: e.target.value }))}
+                    style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-muted)", display: "block", marginBottom: 4 }}>SUBTOPICS (1 PER LINE)</label>
+                <textarea
+                  placeholder="Prefix Sum Technique&#10;Two Pointers opposite direction&#10;Kadane's Algorithm"
+                  rows={4}
+                  value={topicForm.subtopicsText}
+                  onChange={(e) => setTopicForm((f) => ({ ...f, subtopicsText: e.target.value }))}
+                  style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--input-bg)", color: "var(--text-primary)" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 11, fontFamily: "'JetBrains Mono', monospace", color: "var(--text-muted)", display: "block", marginBottom: 4 }}>TOP INTERVIEW QUESTIONS (1 PER LINE)</label>
+                <textarea
+                  placeholder="Two Sum in O(N)&#10;Trapping Rain Water&#10;Container With Most Water"
+                  rows={3}
+                  value={topicForm.questionsText}
+                  onChange={(e) => setTopicForm((f) => ({ ...f, questionsText: e.target.value }))}
+                  style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--input-bg)", color: "var(--text-primary)" }}
+                />
+              </div>
+
+              <button
+                onClick={handleSaveTopic}
+                style={{ background: "#14151A", color: "#fff", padding: "12px", borderRadius: 8, border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "'Sora', sans-serif" }}
+              >
+                {isEditingTopic ? "Save Changes" : "Add Topic"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Add New Track Modal */}
+      {trackModalOpen && (
+        <div onClick={() => setTrackModalOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(16,18,24,0.65)", backdropFilter: "blur(4px)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: 16, maxWidth: 480, width: "100%", padding: 24, animation: "popIn .15s ease" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 700, margin: 0 }}>Create New Roadmap Track</h3>
+              <button onClick={() => setTrackModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={18} /></button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <input
+                type="text"
+                placeholder="Track ID (e.g. python, devops, aiml)"
+                value={trackForm.id}
+                onChange={(e) => setTrackForm((f) => ({ ...f, id: e.target.value }))}
+                style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+              />
+              <input
+                type="text"
+                placeholder="Track Title (e.g. Python for Data Science)"
+                value={trackForm.title}
+                onChange={(e) => setTrackForm((f) => ({ ...f, title: e.target.value }))}
+                style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+              />
+              <div style={{ display: "flex", gap: 12 }}>
+                <input
+                  type="text"
+                  placeholder="Emoji Icon (e.g. 🐍, ⚙️, 🤖)"
+                  value={trackForm.icon}
+                  onChange={(e) => setTrackForm((f) => ({ ...f, icon: e.target.value }))}
+                  style={{ width: "120px", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                />
+                <input
+                  type="text"
+                  placeholder="Color Hex (e.g. #00B37E)"
+                  value={trackForm.color}
+                  onChange={(e) => setTrackForm((f) => ({ ...f, color: e.target.value }))}
+                  style={{ flex: 1, padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                />
+              </div>
+              <textarea
+                placeholder="Short track description..."
+                rows={2}
+                value={trackForm.description}
+                onChange={(e) => setTrackForm((f) => ({ ...f, description: e.target.value }))}
+                style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--input-bg)", color: "var(--text-primary)" }}
+              />
+              <button
+                onClick={handleCreateTrack}
+                style={{ background: "#14151A", color: "#fff", padding: "12px", borderRadius: 8, border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "'Sora', sans-serif" }}
+              >
+                Create Track
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
