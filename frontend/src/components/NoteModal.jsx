@@ -1,15 +1,31 @@
-import React, { useState } from "react";
-import { X, BookOpen, Download, Check, Trash2, Loader2, Pencil, Share2, Copy, ExternalLink, Eye } from "lucide-react";
-import { colorFor } from "../data.js";
+import React, { useState, useEffect } from "react";
+import { X, BookOpen, Download, Check, Trash2, Loader2, Pencil, Share2, Copy, ExternalLink, Eye, Star, Heart } from "lucide-react";
+import { colorFor, iconFor } from "../data.js";
 import { downloadNoteUrl } from "../api.js";
+
+const USER_RATINGS_KEY = "codewithnarayan_user_ratings";
 
 export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDelete, onEdit }) {
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [userRating, setUserRating] = useState(0);
+
+  useEffect(() => {
+    if (note) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(USER_RATINGS_KEY) || "{}");
+        if (saved[note.id]) setUserRating(saved[note.id]);
+        else setUserRating(0);
+      } catch (e) {
+        setUserRating(0);
+      }
+    }
+  }, [note]);
 
   if (!note) return null;
   const color = colorFor(note.subject);
+  const icon = iconFor(note.subject);
   const hasFile = !!note.file_path;
   const hasDriveLink = !!note.driveLink;
   const canOpen = hasFile || hasDriveLink;
@@ -45,6 +61,15 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
+  const handleRate = (star) => {
+    setUserRating(star);
+    try {
+      const saved = JSON.parse(localStorage.getItem(USER_RATINGS_KEY) || "{}");
+      saved[note.id] = star;
+      localStorage.setItem(USER_RATINGS_KEY, JSON.stringify(saved));
+    } catch (e) {}
+  };
+
   // Convert Google Drive view link to embeddable preview link if possible
   const getDrivePreviewUrl = (link) => {
     if (!link) return null;
@@ -60,7 +85,7 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, background: "rgba(20,21,26,0.65)", backdropFilter: "blur(4px)",
+        position: "fixed", inset: 0, background: "rgba(20,21,26,0.65)", backdropFilter: "blur(5px)",
         display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999, padding: 16,
       }}
     >
@@ -74,8 +99,8 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color, background: `${color}17`, padding: "4px 10px", borderRadius: 20, fontWeight: 700 }}>
-              {note.subject.toUpperCase()}
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color, background: `${color}17`, padding: "4px 10px", borderRadius: 20, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+              <span>{icon}</span> {note.subject.toUpperCase()}
             </span>
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: "var(--text-secondary)", background: "var(--bg-secondary)", padding: "4px 10px", borderRadius: 20 }}>
               {note.pages} pages
@@ -103,11 +128,34 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
           {note.title}
         </h2>
 
-        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: "0 0 18px" }}>
+        <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: "0 0 16px" }}>
           {note.desc} Handwritten, diagram-first notes made for quick revision before interviews and exams.
         </p>
 
-        {/* Feature #2: Live Preview Viewer */}
+        {/* Student Star Feedback */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-secondary)", borderRadius: 10, padding: "8px 14px", marginBottom: 16 }}>
+          <span style={{ fontSize: 12, fontFamily: "'Sora', sans-serif", fontWeight: 600, color: "var(--text-secondary)" }}>
+            Rate this note:
+          </span>
+          <div style={{ display: "flex", gap: 4 }}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onClick={() => handleRate(star)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
+                title={`Rate ${star} star`}
+              >
+                <Star
+                  size={17}
+                  color="#FFB238"
+                  fill={star <= userRating ? "#FFB238" : "none"}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Live Preview Viewer */}
         {driveEmbedUrl && (
           <div style={{ marginBottom: 18 }}>
             <button
@@ -137,7 +185,7 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
             </button>
 
             {showPreview && (
-              <div style={{ marginTop: 10, borderRadius: 12, overflow: "hidden", border: "1.5px solid var(--border)", background: "#000", height: 360 }}>
+              <div style={{ marginTop: 10, borderRadius: 12, overflow: "hidden", border: "1.5px solid var(--border)", background: "#000", height: 380 }}>
                 <iframe
                   src={driveEmbedUrl}
                   width="100%"
@@ -151,13 +199,13 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
           </div>
         )}
 
-        {/* Feature #3: WhatsApp & Share Buttons */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 22 }}>
+        {/* WhatsApp & Direct Link Share Buttons */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
           <button
             onClick={handleShareWhatsApp}
             style={{
               flex: 1,
-              padding: "9px 12px",
+              padding: "10px 12px",
               borderRadius: 8,
               border: "none",
               background: "#25D366",
@@ -178,7 +226,7 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
             onClick={handleCopyLink}
             style={{
               flex: 1,
-              padding: "9px 12px",
+              padding: "10px 12px",
               borderRadius: 8,
               border: "1.5px solid var(--border)",
               background: "var(--bg-secondary)",
@@ -197,6 +245,7 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
           </button>
         </div>
 
+        {/* Footer & Download Button */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
           <div>
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: "var(--text-muted)", textDecoration: "line-through" }}>₹99</div>
@@ -223,3 +272,4 @@ export default function NoteModal({ note, onClose, onGet, owned, isAdmin, onDele
     </div>
   );
 }
+

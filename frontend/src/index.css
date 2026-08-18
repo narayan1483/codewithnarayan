@@ -167,6 +167,13 @@ textarea::placeholder {
   .desktop-nav { display: none !important; }
   .mobile-toggle { display: flex !important; }
   .bottom-nav { display: flex !important; }
-  body { padding-bottom: 64px; }
-  .chat-fab { bottom: 80px !important; }
+  body { padding-bottom: 72px; }
+  .chat-fab { bottom: 84px !important; }
+  
+  /* Make cards touch friendly and full width */
+  #notes, #roadmap, #cheatsheets, #quiz {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
 }
+

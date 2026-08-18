@@ -1,9 +1,28 @@
 import React, { useState } from "react";
-import { PenTool, ShoppingBag, Menu, Plus, Sun, Moon, Lock, LogOut, BarChart2, Download, BookOpen, MessageSquare, Inbox } from "lucide-react";
+import { PenTool, ShoppingBag, Menu, Plus, Sun, Moon, Lock, LogOut, BarChart2, Download, BookOpen, MessageSquare, Inbox, Search, Command } from "lucide-react";
 import { NAV_LINKS } from "../data.js";
 
-export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, isAdmin, onAdminLoginClick, onAdminLogout, stats }) {
+export default function Header({
+  ownedCount,
+  onAddNote,
+  theme,
+  onToggleTheme,
+  isAdmin,
+  onAdminLoginClick,
+  onAdminLogout,
+  stats,
+  onOpenCommandPalette,
+}) {
   const [navOpen, setNavOpen] = useState(false);
+
+  const EXTENDED_NAV = [
+    { label: "Home", href: "#home" },
+    { label: "Notes", href: "#notes" },
+    { label: "Roadmaps 🎯", href: "#roadmap" },
+    { label: "Cheatsheets ⚡", href: "#cheatsheets" },
+    { label: "Quiz 🏆", href: "#quiz" },
+    { label: "Contact", href: "#contact" },
+  ];
 
   return (
     <div
@@ -58,7 +77,7 @@ export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, is
         style={{
           maxWidth: 1080,
           margin: "0 auto",
-          padding: "14px 20px",
+          padding: "12px 20px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -78,20 +97,41 @@ export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, is
           </span>
         </div>
 
-        <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          {NAV_LINKS.map((l) => (
+        <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 22 }}>
+          {EXTENDED_NAV.map((l) => (
             <a
               key={l.label}
               href={l.href}
               className="nav-link"
-              style={{ fontFamily: "'Sora', sans-serif", fontSize: 13.5, fontWeight: 600, color: "var(--text-secondary)", textDecoration: "none" }}
+              style={{ fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", textDecoration: "none" }}
             >
               {l.label}
             </a>
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Spotlight Search Ctrl+K Button */}
+          <button
+            onClick={onOpenCommandPalette}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "var(--bg-secondary)",
+              border: "1.5px solid var(--border)",
+              borderRadius: 8,
+              padding: "6px 10px",
+              cursor: "pointer",
+              fontSize: 12,
+              fontFamily: "'JetBrains Mono', monospace",
+              color: "var(--text-secondary)",
+            }}
+          >
+            <Search size={13} color="var(--text-muted)" />
+            <span className="desktop-nav" style={{ fontSize: 11, color: "var(--text-muted)" }}>Ctrl+K</span>
+          </button>
+
           {isAdmin ? (
             <>
               <button
@@ -125,6 +165,7 @@ export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, is
               <Lock size={13} color="var(--text-muted)" />
             </button>
           )}
+
           <button
             onClick={onToggleTheme}
             aria-label="Toggle dark mode"
@@ -133,6 +174,7 @@ export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, is
           >
             {theme === "dark" ? <Sun size={15} color="#FFB238" /> : <Moon size={15} color="var(--text-secondary)" />}
           </button>
+
           <div style={{ position: "relative", display: "flex" }}>
             <ShoppingBag size={19} color="#454A54" />
             {ownedCount > 0 && (
@@ -147,6 +189,7 @@ export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, is
               </span>
             )}
           </div>
+
           <button
             className="mobile-toggle"
             onClick={() => setNavOpen((v) => !v)}
@@ -159,7 +202,7 @@ export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, is
 
       {navOpen && (
         <div style={{ borderTop: "1.5px solid var(--border)", padding: "10px 20px 16px", display: "flex", flexDirection: "column", gap: 4 }}>
-          {NAV_LINKS.map((l) => (
+          {EXTENDED_NAV.map((l) => (
             <a
               key={l.label}
               href={l.href}
@@ -174,3 +217,4 @@ export default function Header({ ownedCount, onAddNote, theme, onToggleTheme, is
     </div>
   );
 }
+

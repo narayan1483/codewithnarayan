@@ -1,10 +1,11 @@
 import React, { useRef } from "react";
 import { ArrowUpRight, Star, Heart, Share2 } from "lucide-react";
-import { colorFor, tagFor } from "../data.js";
+import { colorFor, tagFor, iconFor } from "../data.js";
 
 export default function NoteCard({ note, onOpen, wishlisted, onToggleWishlist }) {
   const color = colorFor(note.subject);
   const tag = tagFor(note.subject);
+  const icon = iconFor(note.subject);
   const cardRef = useRef(null);
   const touchStartX = useRef(null);
 
@@ -46,14 +47,14 @@ export default function NoteCard({ note, onOpen, wishlisted, onToggleWishlist })
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 10px 24px -8px ${color}55`; e.currentTarget.style.borderColor = color; }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 12px 28px -8px ${color}55`; e.currentTarget.style.borderColor = color; }}
       onMouseLeave={resetTilt}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       style={{
         background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: 14,
         overflow: "hidden", display: "flex", flexDirection: "column", position: "relative",
-        transition: "transform .12s ease, box-shadow .15s ease, border-color .15s ease",
+        transition: "transform .14s ease, box-shadow .15s ease, border-color .15s ease",
       }}
     >
       {/* Subject Accent Corner Badge */}
@@ -97,8 +98,9 @@ export default function NoteCard({ note, onOpen, wishlisted, onToggleWishlist })
       </div>
 
       <button onClick={() => onOpen(note)} style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", width: "100%" }}>
-        <div style={{ padding: "24px 20px 22px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <div style={{ padding: "22px 20px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 14 }}>{icon}</span>
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color, letterSpacing: 0.4, textTransform: "uppercase", fontWeight: 700 }}>
               {tag}
             </span>
@@ -116,23 +118,23 @@ export default function NoteCard({ note, onOpen, wishlisted, onToggleWishlist })
 
           <h3
             style={{
-              fontFamily: "'Sora', sans-serif", fontSize: 17.5, fontWeight: 700, color: "var(--text-primary)",
-              margin: "0 0 10px", lineHeight: 1.32,
-              background: `linear-gradient(transparent 62%, ${color}33 62%)`, display: "inline",
+              fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 700, color: "var(--text-primary)",
+              margin: "0 0 10px", lineHeight: 1.35,
+              background: `linear-gradient(transparent 62%, ${color}28 62%)`, display: "inline",
             }}
           >
             {note.title}
           </h3>
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "var(--text-secondary)", margin: "11px 0 14px", lineHeight: 1.55, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "var(--text-secondary)", margin: "10px 0 14px", lineHeight: 1.55, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {note.desc}
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 14 }}>
             <Star size={13} color="#FFB238" fill="#FFB238" />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "var(--text-secondary)", fontWeight: 500 }}>{note.rating ?? "4.7"}</span>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: "#B3B3AB" }}>· {note.downloads ?? 0} downloads</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>{note.rating ?? "4.8"}</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: "var(--text-muted)" }}>· {note.downloads ?? 0} downloads</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "var(--text-muted)" }}>
-            <span>{note.pages} pg</span>
+            <span>{note.pages} pages</span>
             <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--text-primary)", fontWeight: 600 }}>
               View <ArrowUpRight size={14} />
             </span>
@@ -142,3 +144,4 @@ export default function NoteCard({ note, onOpen, wishlisted, onToggleWishlist })
     </div>
   );
 }
+

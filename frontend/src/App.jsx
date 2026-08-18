@@ -1,17 +1,23 @@
 import React, { useState, useEffect, useMemo } from "react";
+import AnnouncementBanner from "./components/AnnouncementBanner.jsx";
 import Header from "./components/Header.jsx";
 import Hero from "./components/Hero.jsx";
+import RecentlyViewed from "./components/RecentlyViewed.jsx";
+import TrendingSection from "./components/TrendingSection.jsx";
 import NotesSection from "./components/NotesSection.jsx";
+import RoadmapSection from "./components/RoadmapSection.jsx";
+import CheatsheetSection from "./components/CheatsheetSection.jsx";
+import QuizSection from "./components/QuizSection.jsx";
+import CommandPalette from "./components/CommandPalette.jsx";
 import NoteModal from "./components/NoteModal.jsx";
 import AddNoteModal from "./components/AddNoteModal.jsx";
 import AdminLoginModal from "./components/AdminLoginModal.jsx";
 import RequestNoteModal from "./components/RequestNoteModal.jsx";
 import AboutSection from "./components/AboutSection.jsx";
 import ContactSection from "./components/ContactSection.jsx";
+import BundlesSection from "./components/BundlesSection.jsx";
 import Footer from "./components/Footer.jsx";
 import ChatWidget from "./components/ChatWidget.jsx";
-import TrendingSection from "./components/TrendingSection.jsx";
-import BundlesSection from "./components/BundlesSection.jsx";
 import BottomNav from "./components/BottomNav.jsx";
 import { useToasts, ToastStack } from "./components/Toast.jsx";
 import {
@@ -27,14 +33,25 @@ import {
 } from "./api.js";
 
 const WISHLIST_KEY = "codewithnarayan_wishlist";
+const RECENT_KEY = "codewithnarayan_recent_notes";
 
 export default function App() {
   const [active, setActive] = useState("all");
+  const [filterTag, setFilterTag] = useState("all");
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [openNote, setOpenNote] = useState(null);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [owned, setOwned] = useState(new Set());
   const [wishlist, setWishlist] = useState(new Set());
+  const [recentNoteIds, setRecentNoteIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem(RECENT_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -66,6 +83,18 @@ export default function App() {
     }
   }, []);
 
+  // Global keyboard shortcut for Ctrl + K command palette
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Fetch admin stats whenever admin logs in
   useEffect(() => {
     if (isAdmin) {
@@ -84,12 +113,12 @@ export default function App() {
       const data = await fetchNotes();
       setNotes(data);
 
-      // Check URL query param for deep-linking (Feature #3: e.g., ?note=5)
+      // Check URL query param for deep-linking (e.g., ?note=5)
       const params = new URLSearchParams(window.location.search);
       const noteId = params.get("note");
       if (noteId) {
         const found = data.find((n) => String(n.id) === String(noteId));
-        if (found) setOpenNote(found);
+        if (found) handleOpenNote(found);
       }
     } catch (e) {
       setLoadError(true);
@@ -97,6 +126,24 @@ export default function App() {
       setLoading(false);
     }
   };
+
+  const handleOpenNote = (note) => {
+    setOpenNote(note);
+    if (!note) return;
+    setRecentNoteIds((prev) => {
+      const updated = [note.id, ...prev.filter((id) => id !== note.id)].slice(0, 5);
+      try {
+        localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const recentNotesList = useMemo(() => {
+    return recentNoteIds
+      .map((id) => notes.find((n) => n.id === id))
+      .filter(Boolean);
+  }, [recentNoteIds, notes]);
 
   const totalDownloads = useMemo(() => {
     return notes.reduce((sum, n) => sum + Number(n.downloads || 0), 0);
@@ -138,22 +185,37 @@ export default function App() {
 
   const filtered = useMemo(() => {
     let list = notes.filter((n) => {
-      const matchesSubject = active === "all" || active === "wishlist" || (n.subject || "").toLowerCase() === active.toLowerCase();
+      const matchesSubject =
+        active === "all" ||
+        active === "wishlist" ||
+        (n.subject || "").toLowerCase().replace(/[^a-z]/g, "") === active.toLowerCase().replace(/[^a-z]/g, "");
       const matchesWishlist = active !== "wishlist" || wishlist.has(n.id);
-      const matchesQuery = n.title.toLowerCase().includes(query.toLowerCase());
-      return matchesSubject && matchesWishlist && matchesQuery;
+      const matchesQuery =
+        n.title.toLowerCase().includes(query.toLowerCase()) ||
+        (n.subject || "").toLowerCase().includes(query.toLowerCase()) ||
+        (n.desc || "").toLowerCase().includes(query.toLowerCase());
+
+      // Quick Tag filters
+      let matchesTag = true;
+      if (filterTag === "popular") matchesTag = Number(n.downloads || 0) >= 50;
+      else if (filterTag === "top_rated") matchesTag = Number(n.rating || 0) >= 4.8;
+      else if (filterTag === "big_packs") matchesTag = Number(n.pages || 0) >= 20;
+
+      return matchesSubject && matchesWishlist && matchesQuery && matchesTag;
     });
+
     list = [...list];
     if (sortBy === "popular") list.sort((a, b) => (b.downloads ?? 0) - (a.downloads ?? 0));
+    else if (sortBy === "pages") list.sort((a, b) => (b.pages ?? 0) - (a.pages ?? 0));
     else if (sortBy === "az") list.sort((a, b) => a.title.localeCompare(b.title));
     else list.sort((a, b) => b.id - a.id); // newest
     return list;
-  }, [active, query, notes, sortBy, wishlist]);
+  }, [active, filterTag, query, notes, sortBy, wishlist]);
 
   const handleGet = (note) => {
     setOwned((prev) => new Set(prev).add(note.id));
     setNotes((prev) => prev.map((n) => (n.id === note.id ? { ...n, downloads: (n.downloads ?? 0) + 1 } : n)));
-    showToast(`"${note.title}" downloaded`, "success");
+    showToast(`"${note.title}" opened`, "success");
   };
 
   const openBundle = (bundle, items) => {
@@ -187,8 +249,14 @@ export default function App() {
     showToast("Logged out of admin", "info");
   };
 
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+      <AnnouncementBanner isAdmin={isAdmin} />
       <Header
         ownedCount={owned.size}
         onAddNote={() => { setEditingNote(null); setAddOpen(true); }}
@@ -198,6 +266,7 @@ export default function App() {
         onAdminLoginClick={() => setAdminLoginOpen(true)}
         onAdminLogout={handleAdminLogout}
         stats={adminStats}
+        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
       />
       <Hero
         query={query}
@@ -206,7 +275,10 @@ export default function App() {
         totalDownloads={totalDownloads}
         onRequestClick={() => setRequestModalOpen(true)}
       />
-      <TrendingSection notes={notes} onOpen={setOpenNote} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
+
+      <RecentlyViewed recentNotes={recentNotesList} onOpen={handleOpenNote} />
+
+      <TrendingSection notes={notes} onOpen={handleOpenNote} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
 
       {loadError ? (
         <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px", textAlign: "center" }}>
@@ -221,11 +293,13 @@ export default function App() {
         <NotesSection
           active={active}
           setActive={setActive}
+          filterTag={filterTag}
+          setFilterTag={setFilterTag}
           filtered={filtered}
           notes={notes}
           loading={loading}
           query={query}
-          onOpen={setOpenNote}
+          onOpen={handleOpenNote}
           sortBy={sortBy}
           setSortBy={setSortBy}
           wishlist={wishlist}
@@ -234,6 +308,9 @@ export default function App() {
         />
       )}
 
+      <RoadmapSection onFilterNotesBySubject={(subj) => { setActive(subj); scrollToSection("notes"); }} />
+      <CheatsheetSection onCopyToast={showToast} isAdmin={isAdmin} />
+      <QuizSection onToast={showToast} isAdmin={isAdmin} />
       <BundlesSection allNotes={notes} onOpenBundle={openBundle} />
       <AboutSection />
       <ContactSection onSend={handleContactSend} />
@@ -263,9 +340,18 @@ export default function App() {
         onSubmitSuccess={handleRequestSubmit}
       />
       <AdminLoginModal open={adminLoginOpen} onClose={() => setAdminLoginOpen(false)} onLoginSuccess={() => setIsAdmin(true)} />
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        notes={notes}
+        onOpenNote={handleOpenNote}
+        onSelectSection={scrollToSection}
+      />
       <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
       <BottomNav onChatToggle={() => setChatOpen((v) => !v)} wishlistCount={wishlist.size} />
       <ToastStack toasts={toasts} />
     </div>
   );
 }
+
+
