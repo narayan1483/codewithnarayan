@@ -10,10 +10,11 @@ const pool = mysql.createPool({
     rejectUnauthorized: false,
   },
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 5,          // Render free tier ke liye 5 enough hai
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000,
+  idleTimeout: 60000,          // 60 sec idle → connection free karo
 });
 
 // ─── Table Creation ──────────────────────────────────────────────

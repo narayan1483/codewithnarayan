@@ -5,6 +5,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import pool from "../db.js";
 import { requireAdmin } from "../middleware/adminAuth.js";
+import { cached, invalidate } from "../cache.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsDir = path.join(__dirname, "..", "uploads");
@@ -31,10 +32,13 @@ const upload = multer({
 
 const router = express.Router();
 
-// GET /api/notes — list all notes
+// GET /api/notes — list all notes (cached 30 sec)
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM notes ORDER BY id DESC");
+    const rows = await cached("all_notes", async () => {
+      const [data] = await pool.query("SELECT * FROM notes ORDER BY id DESC");
+      return data;
+    });
     res.json(rows);
   } catch (err) {
     console.error("Error fetching notes:", err.message);
@@ -67,6 +71,7 @@ router.post("/", requireAdmin, upload.single("pdf"), async (req, res) => {
       ]
     );
 
+    invalidate("all_notes");
     const [rows] = await pool.query("SELECT * FROM notes WHERE id = ?", [result.insertId]);
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -122,6 +127,7 @@ router.put("/:id", requireAdmin, upload.single("pdf"), async (req, res) => {
       [updatedTitle, updatedSubject, updatedPages, updatedLevel, updatedDescription, updatedFilePath, updatedFileName, updatedDriveLink, id]
     );
 
+    invalidate("all_notes");
     const [rows] = await pool.query("SELECT * FROM notes WHERE id = ?", [id]);
     res.json(rows[0]);
   } catch (err) {
@@ -167,6 +173,7 @@ router.delete("/:id", requireAdmin, async (req, res) => {
     }
 
     await pool.query("DELETE FROM notes WHERE id = ?", [id]);
+    invalidate("all_notes");
     res.json({ success: true });
   } catch (err) {
     console.error("Error deleting note:", err.message);
