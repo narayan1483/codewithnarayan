@@ -318,22 +318,178 @@ const INITIAL_ROADMAP_DATA = {
       },
     ],
   },
+  aiml: {
+    id: "aiml",
+    title: "Artificial Intelligence & Machine Learning",
+    icon: "🤖",
+    color: "#8B5CF6",
+    description: "Learn AI, Machine Learning, Deep Learning, NLP, Generative AI and LLMs from fundamentals to advanced concepts.",
+    steps: [
+      {
+        id: "aiml_1",
+        name: "1. Python for AI/ML",
+        level: "Beginner",
+        subtopics: ["Python Fundamentals & OOP in Python", "List Comprehensions, Lambda Functions & Generators", "File I/O, Exception Handling & JSON", "Virtual Environments & Package Management (pip, conda)"],
+        interviewQuestions: ["Why is Python the preferred language for AI/ML?", "Difference between shallow copy and deep copy in Python", "What are Python Generators and why are they memory efficient?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_2",
+        name: "2. Mathematics for Machine Learning",
+        level: "Beginner",
+        subtopics: ["Linear Algebra: Vectors, Matrices, Dot Products, Eigenvalues & Eigenvectors", "Calculus: Partial Derivatives, Gradients & Chain Rule", "Probability & Statistics: Distributions, Bayes Theorem, Mean, Variance, Covariance", "Hypothesis Testing & p-values"],
+        interviewQuestions: ["What is the role of Eigenvalues and Eigenvectors in PCA?", "Explain Gradient Descent mathematically", "What is Bayes' Theorem and its application in Naive Bayes?"],
+        noteLinkSubject: "dsa",
+      },
+      {
+        id: "aiml_3",
+        name: "3. NumPy & Pandas",
+        level: "Beginner",
+        subtopics: ["NumPy N-Dimensional Arrays, Broadcasting & Vectorization", "Matrix Operations & Linear Algebra functions (np.linalg)", "Pandas Series & DataFrames (Indexing, Filtering, GroupBy)", "Merging, Joining, Reshaping & Handling Missing Values"],
+        interviewQuestions: ["Why is NumPy faster than standard Python lists?", "What is Array Broadcasting in NumPy?", "Difference between .loc and .iloc in Pandas"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_4",
+        name: "4. Data Preprocessing",
+        level: "Beginner",
+        subtopics: ["Handling Missing Data (Imputation: Mean, Median, KNN)", "Feature Scaling: Normalization (MinMax) vs Standardization (StandardScaler)", "Encoding Categorical Variables: One-Hot, Ordinal, Target Encoding", "Outlier Detection & Treatment (IQR, Z-Score)"],
+        interviewQuestions: ["When should you use Standardization vs Normalization?", "What is Data Leakage and how do you prevent it during preprocessing?", "How do you handle severe class imbalance in datasets?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_5",
+        name: "5. Supervised Learning",
+        level: "Intermediate",
+        subtopics: ["Linear Regression (Cost Function, Ordinary Least Squares, Ridge, Lasso)", "Logistic Regression (Sigmoid, Odds Ratio, Cross-Entropy Loss)", "Decision Trees & Random Forests (Gini Impurity, Entropy, Bagging)", "Support Vector Machines (SVM) & Kernel Trick", "K-Nearest Neighbors (KNN) & Naive Bayes Classifier"],
+        interviewQuestions: ["Difference between Ridge (L2) and Lasso (L1) Regularization", "Explain Bias-Variance Tradeoff with examples", "Why are Random Forests resistant to overfitting?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_6",
+        name: "6. Unsupervised Learning",
+        level: "Intermediate",
+        subtopics: ["K-Means Clustering & Elbow Method (Inertia)", "Hierarchical Clustering (Dendrograms, Agglomerative)", "DBSCAN (Density-Based Spatial Clustering of Applications with Noise)", "Dimensionality Reduction: PCA (Principal Component Analysis) & t-SNE"],
+        interviewQuestions: ["How do you determine the optimal number of clusters in K-Means?", "Difference between K-Means and DBSCAN", "What is the Curse of Dimensionality and how does PCA solve it?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_7",
+        name: "7. Model Evaluation",
+        level: "Intermediate",
+        subtopics: ["Classification Metrics: Accuracy, Precision, Recall, F1-Score, ROC-AUC curve", "Confusion Matrix & Type I / Type II Errors", "Regression Metrics: MSE, RMSE, MAE, R-Squared, Adjusted R-Squared", "K-Fold Cross-Validation & Stratified K-Fold"],
+        interviewQuestions: ["When is Precision more important than Recall? (Give real examples)", "What is the Area Under ROC Curve (ROC-AUC)?", "Difference between R-Squared and Adjusted R-Squared"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_8",
+        name: "8. Deep Learning",
+        level: "Advanced",
+        subtopics: ["Artificial Neural Networks (ANN): Perceptrons, Multi-Layer Perceptron (MLP)", "Activation Functions: ReLU, Sigmoid, Tanh, Softmax, LeakyReLU", "Backpropagation & Optimizers (SGD, Momentum, RMSProp, Adam)", "Convolutional Neural Networks (CNN): Filters, Pooling, Strides, ResNet", "Recurrent Neural Networks (RNN), LSTM & GRU for sequential data"],
+        interviewQuestions: ["What is the Vanishing/Exploding Gradient problem and how is it solved?", "Why is Adam optimizer widely preferred over vanilla SGD?", "Difference between RNN and LSTM"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_9",
+        name: "9. Feature Engineering",
+        level: "Intermediate",
+        subtopics: ["Feature Creation & Polynomial Features", "Feature Selection: Filter methods, Wrapper methods, Embedded methods", "Feature Importance using Tree Models & SHAP values", "Dimensionality reduction & Correlation Matrix analysis"],
+        interviewQuestions: ["What is the difference between Feature Selection and Feature Extraction?", "How do SHAP values explain black-box ML model predictions?", "How do you detect and handle multicollinearity?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_10",
+        name: "10. Scikit-Learn & ML Pipeline",
+        level: "Beginner",
+        subtopics: ["Scikit-Learn Estimator, Transformer & Predictor API", "Building robust Pipelines with ColumnTransformer & Pipeline", "Hyperparameter Tuning with GridSearchCV & RandomizedSearchCV", "Model Persistence with Joblib & Pickle"],
+        interviewQuestions: ["Why should you always use Scikit-Learn Pipelines?", "Difference between GridSearchCV and RandomizedSearchCV", "How do you deploy a serialized model (.joblib/.pkl)?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_11",
+        name: "11. Natural Language Processing",
+        level: "Advanced",
+        subtopics: ["Text Preprocessing: Tokenization, Stemming, Lemmatization, Stopwords removal", "Vectorization: Bag of Words (BoW), TF-IDF, N-grams", "Word Embeddings: Word2Vec, GloVe, FastText", "Named Entity Recognition (NER), Sentiment Analysis & POS Tagging using Spacy/NLTK"],
+        interviewQuestions: ["What is the difference between Stemming and Lemmatization?", "How does TF-IDF score calculate term importance?", "Explain Cosine Similarity in Word Embeddings"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_12",
+        name: "12. Generative AI",
+        level: "Advanced",
+        subtopics: ["Generative vs Discriminative Models", "Variational Autoencoders (VAEs) & Generative Adversarial Networks (GANs)", "Diffusion Models: Latent Diffusion, Stable Diffusion, DALL-E", "Prompt Engineering: Few-shot, Chain-of-Thought (CoT), Tree-of-Thoughts"],
+        interviewQuestions: ["How do Generative Adversarial Networks (GANs) work?", "What is Prompt Engineering and Chain-of-Thought prompting?", "Difference between Autoencoders and Variational Autoencoders"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_13",
+        name: "13. Transformers & LLMs",
+        level: "Advanced",
+        subtopics: ["Transformer Architecture: Self-Attention mechanism, Multi-Head Attention, Positional Encodings", "Encoder-only (BERT), Decoder-only (GPT), Encoder-Decoder (T5)", "LLM Training Pipeline: Pretraining, Fine-Tuning (LoRA, QLoRA), RLHF / DPO", "Tokenization (BPE, WordPiece, SentencePiece) & Context Windows"],
+        interviewQuestions: ["Explain the Self-Attention mechanism in Transformers", "What is LoRA (Low-Rank Adaptation) and why is it parameter-efficient?", "What is RLHF (Reinforcement Learning from Human Feedback)?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_14",
+        name: "14. RAG — Retrieval Augmented Generation",
+        level: "Advanced",
+        subtopics: ["RAG Architecture Overview: Ingestion, Chunking, Embedding, Vector DB, Retrieval, Generation", "Vector Databases: ChromaDB, Pinecone, FAISS, Milvus, Qdrant", "Embedding Models & Semantic Search (Cosine, Dot Product)", "Advanced RAG: Hybrid Search (BM25 + Dense), Reranking (Cross-Encoder), Query Transformation"],
+        interviewQuestions: ["What is RAG and why is it preferred over fine-tuning for dynamic knowledge?", "What chunking strategies are best for document RAG?", "How does Reranking improve RAG answer accuracy?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_15",
+        name: "15. AI Agents",
+        level: "Advanced",
+        subtopics: ["Agent Frameworks: LangChain, LangGraph, CrewAI, AutoGen", "Agent Cognitive Architecture: Planning, Memory (Short-term / Long-term), Tool Calling", "ReAct Pattern (Reasoning + Acting)", "Multi-agent Collaboration, Orchestration & Human-in-the-loop workflows"],
+        interviewQuestions: ["What is an AI Agent and how does it differ from a standard LLM chat?", "Explain the ReAct (Reasoning and Acting) prompt pattern", "How do you manage agent loops and prevent infinite execution?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_16",
+        name: "16. MLOps",
+        level: "Advanced",
+        subtopics: ["Experiment Tracking with MLflow & Weights & Biases (W&B)", "Model Registry & Versioning (DVC - Data Version Control)", "Model Deployment: FastAPI, TorchServe, Docker containers", "Model Monitoring: Data Drift, Concept Drift, Latency & Prometheus metrics"],
+        interviewQuestions: ["What is Data Drift vs Concept Drift and how do you monitor it?", "What is MLOps and how does it differ from standard DevOps?", "How do you containerize and serve an ML model with FastAPI and Docker?"],
+        noteLinkSubject: "python",
+      },
+      {
+        id: "aiml_17",
+        name: "17. AI/ML Projects",
+        level: "Advanced",
+        subtopics: ["End-to-End Production ML Pipeline with CI/CD", "Fullstack RAG Knowledge Base Search Engine", "Autonomous Multi-Agent Researcher System", "Computer Vision Object Detection & Fine-Tuned Domain LLM"],
+        interviewQuestions: ["How do you architect an end-to-end ML project from data ingestion to production API?", "How do you evaluate and benchmark an LLM RAG application?", "What are the common scalability bottlenecks in serving ML models?"],
+        noteLinkSubject: "python",
+      },
+    ],
+  },
 };
 
 const ROADMAP_STORAGE_KEY = "codewithnarayan_custom_roadmaps";
 const PROGRESS_STORAGE_KEY = "codewithnarayan_roadmap_progress";
+const ACTIVE_TRACK_STORAGE_KEY = "codewithnarayan_active_track";
 
 export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
   const [roadmaps, setRoadmaps] = useState(() => {
     try {
       const saved = localStorage.getItem(ROADMAP_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_ROADMAP_DATA;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...INITIAL_ROADMAP_DATA, ...parsed };
+      }
+      return INITIAL_ROADMAP_DATA;
     } catch {
       return INITIAL_ROADMAP_DATA;
     }
   });
 
-  const [activeTrack, setActiveTrack] = useState("dsa");
+  const [activeTrack, setActiveTrack] = useState(() => {
+    try {
+      return localStorage.getItem(ACTIVE_TRACK_STORAGE_KEY) || "dsa";
+    } catch {
+      return "dsa";
+    }
+  });
   const [selectedStep, setSelectedStep] = useState(null);
   const [completed, setCompleted] = useState(() => {
     try {
@@ -377,6 +533,12 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
       localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify([...completed]));
     } catch (e) {}
   }, [completed]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ACTIVE_TRACK_STORAGE_KEY, activeTrack);
+    } catch (e) {}
+  }, [activeTrack]);
 
   const trackKeys = Object.keys(roadmaps);
   const currentKey = roadmaps[activeTrack] ? activeTrack : trackKeys[0] || "dsa";

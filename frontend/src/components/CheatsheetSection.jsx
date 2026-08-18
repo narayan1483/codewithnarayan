@@ -144,24 +144,87 @@ HAVING COUNT(email) > 1;`,
       },
     ],
   },
+  {
+    id: "python",
+    title: "Python & AI Patterns",
+    icon: "🐍",
+    color: "#8B5CF6",
+    snippets: [
+      {
+        name: "List & Dict Comprehensions with Conditions",
+        lang: "Python",
+        code: `# Filter even numbers and square them
+evens_squared = [x**2 for x in range(20) if x % 2 == 0]
+
+# Word frequency dictionary comprehension
+words = ["ai", "ml", "python", "ai", "deeplearning", "ml"]
+freq = {w: words.count(w) for w in set(words)}`,
+      },
+      {
+        name: "Cosine Similarity for RAG & Embeddings",
+        lang: "Python",
+        code: `import numpy as np
+
+def cosine_similarity(a, b):
+    dot_product = np.dot(a, b)
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
+    return dot_product / (norm_a * norm_b)`,
+      },
+      {
+        name: "FastAPI REST Endpoint for Model Inference",
+        lang: "Python",
+        code: `from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class QueryRequest(BaseModel):
+    prompt: str
+
+@app.post("/predict")
+def predict(req: QueryRequest):
+    return {"status": "success", "response": f"Processed: {req.prompt}"}`,
+      },
+    ],
+  },
 ];
 
 const CHEATSHEET_STORAGE_KEY = "codewithnarayan_custom_cheatsheets";
+const ACTIVE_CHEATSHEET_TAB_STORAGE_KEY = "codewithnarayan_active_cheatsheet_tab";
 
 export default function CheatsheetSection({ onCopyToast, isAdmin }) {
-  const [activeTab, setActiveTab] = useState("dsa");
-  const [copiedIndex, setCopiedIndex] = useState(null);
   const [sheets, setSheets] = useState(() => {
     try {
       const saved = localStorage.getItem(CHEATSHEET_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_CHEATSHEETS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Merge initial categories with any saved categories
+        const initialIds = new Set(INITIAL_CHEATSHEETS.map((s) => s.id));
+        const customOnly = parsed.filter((s) => !initialIds.has(s.id));
+        return [...INITIAL_CHEATSHEETS, ...customOnly];
+      }
+      return INITIAL_CHEATSHEETS;
     } catch {
       return INITIAL_CHEATSHEETS;
     }
   });
 
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      return localStorage.getItem(ACTIVE_CHEATSHEET_TAB_STORAGE_KEY) || "dsa";
+    } catch {
+      return "dsa";
+    }
+  });
+
+  const [copiedIndex, setCopiedIndex] = useState(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newSnippet, setNewSnippet] = useState({ name: "", lang: "Java", code: "" });
+
+  // Admin New Cheatsheet Category Modal
+  const [newCatModalOpen, setNewCatModalOpen] = useState(false);
+  const [newCatForm, setNewCatForm] = useState({ id: "", title: "", icon: "⚡", color: "#3D5AFE" });
 
   useEffect(() => {
     try {
@@ -169,7 +232,13 @@ export default function CheatsheetSection({ onCopyToast, isAdmin }) {
     } catch (e) {}
   }, [sheets]);
 
-  const currentSheet = sheets.find((c) => c.id === activeTab) || sheets[0];
+  useEffect(() => {
+    try {
+      localStorage.setItem(ACTIVE_CHEATSHEET_TAB_STORAGE_KEY, activeTab);
+    } catch (e) {}
+  }, [activeTab]);
+
+  const currentSheet = sheets.find((c) => c.id === activeTab) || sheets[0] || INITIAL_CHEATSHEETS[0];
 
   const handleCopy = (code, idx) => {
     navigator.clipboard.writeText(code);
@@ -194,6 +263,42 @@ export default function CheatsheetSection({ onCopyToast, isAdmin }) {
     setNewSnippet({ name: "", lang: "Java", code: "" });
     setAddModalOpen(false);
     if (onCopyToast) onCopyToast("New snippet published!", "success");
+  };
+
+  const handleCreateCategory = () => {
+    if (!newCatForm.title.trim() || !newCatForm.id.trim()) return;
+    const cleanId = newCatForm.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (sheets.some((s) => s.id === cleanId)) {
+      alert("A category with this ID already exists!");
+      return;
+    }
+    const newCategory = {
+      id: cleanId,
+      title: newCatForm.title,
+      icon: newCatForm.icon || "⚡",
+      color: newCatForm.color || "#3D5AFE",
+      snippets: [],
+    };
+    setSheets((prev) => [...prev, newCategory]);
+    setActiveTab(cleanId);
+    setNewCatForm({ id: "", title: "", icon: "⚡", color: "#3D5AFE" });
+    setNewCatModalOpen(false);
+    if (onCopyToast) onCopyToast(`Category "${newCategory.title}" created!`, "success");
+  };
+
+  const handleDeleteCategory = (catId, e) => {
+    if (e) e.stopPropagation();
+    if (sheets.length <= 1) {
+      alert("You cannot delete the last remaining category.");
+      return;
+    }
+    if (!window.confirm("Are you sure you want to delete this whole cheatsheet category?")) return;
+    setSheets((prev) => prev.filter((s) => s.id !== catId));
+    if (activeTab === catId) {
+      const remaining = sheets.filter((s) => s.id !== catId);
+      setActiveTab(remaining[0]?.id || "dsa");
+    }
+    if (onCopyToast) onCopyToast("Category deleted", "info");
   };
 
   return (
@@ -257,25 +362,68 @@ export default function CheatsheetSection({ onCopyToast, isAdmin }) {
         </div>
 
         {isAdmin && (
-          <button
-            onClick={() => setAddModalOpen(true)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 14px",
-              borderRadius: 8,
-              border: "none",
-              background: "#14151A",
-              color: "#fff",
-              fontFamily: "'Sora', sans-serif",
-              fontSize: 12.5,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            <Plus size={14} /> Add Snippet (Admin)
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => setNewCatModalOpen(true)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 14px",
+                borderRadius: 8,
+                border: "1.5px dashed var(--border)",
+                background: "var(--surface)",
+                color: "var(--text-primary)",
+                fontFamily: "'Sora', sans-serif",
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              <Plus size={14} /> New Category
+            </button>
+            <button
+              onClick={() => setAddModalOpen(true)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 14px",
+                borderRadius: 8,
+                border: "none",
+                background: "#14151A",
+                color: "#fff",
+                fontFamily: "'Sora', sans-serif",
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              <Plus size={14} /> Add Snippet
+            </button>
+            {sheets.length > 1 && (
+              <button
+                onClick={(e) => handleDeleteCategory(activeTab, e)}
+                title="Delete current category"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  border: "1px solid #FFD5DA",
+                  background: "#FFF1F2",
+                  color: "#FF4D6D",
+                  fontFamily: "'Sora', sans-serif",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                <Trash2 size={13} /> Delete Category
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -405,6 +553,67 @@ export default function CheatsheetSection({ onCopyToast, isAdmin }) {
                 style={{ background: "#14151A", color: "#fff", padding: "12px", borderRadius: 8, border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "'Sora', sans-serif" }}
               >
                 Publish Snippet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Add Category Modal */}
+      {newCatModalOpen && (
+        <div onClick={() => setNewCatModalOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(16,18,24,0.65)", backdropFilter: "blur(4px)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: 16, maxWidth: 450, width: "100%", padding: 24, animation: "popIn .15s ease" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 700, margin: 0 }}>Create New Cheatsheet Category</h3>
+              <button onClick={() => setNewCatModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}><X size={18} /></button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Unique Category ID (e.g. cpp, ai, devops)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. cpp"
+                  value={newCatForm.id}
+                  onChange={(e) => setNewCatForm((f) => ({ ...f, id: e.target.value }))}
+                  style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Category Title</label>
+                <input
+                  type="text"
+                  placeholder="e.g. C++ STL & DSA Master"
+                  value={newCatForm.title}
+                  onChange={(e) => setNewCatForm((f) => ({ ...f, title: e.target.value }))}
+                  style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Emoji Icon</label>
+                  <input
+                    type="text"
+                    placeholder="⚡"
+                    value={newCatForm.icon}
+                    onChange={(e) => setNewCatForm((f) => ({ ...f, icon: e.target.value }))}
+                    style={{ width: "100%", padding: "10px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Theme Color</label>
+                  <input
+                    type="color"
+                    value={newCatForm.color}
+                    onChange={(e) => setNewCatForm((f) => ({ ...f, color: e.target.value }))}
+                    style={{ width: "100%", height: 42, padding: "2px", borderRadius: 8, border: "1.5px solid var(--border)", background: "var(--bg-secondary)", cursor: "pointer" }}
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleCreateCategory}
+                style={{ background: "#3D5AFE", color: "#fff", padding: "12px", borderRadius: 8, border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "'Sora', sans-serif", marginTop: 6 }}
+              >
+                Create Category
               </button>
             </div>
           </div>
