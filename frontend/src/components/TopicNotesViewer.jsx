@@ -434,10 +434,10 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
   const currentPage = pages[activePage] || null;
 
   return (
-    <div className="tn-viewer" style={{ maxWidth: 1080, margin: "0 auto", padding: "20px 20px 60px" }}>
+    <div className="tn-viewer" style={{ maxWidth: 1080, margin: "0 auto", padding: "16px 16px 80px" }}>
       {/* Top Bar — Back Button + Topic Info */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 14, marginBottom: 20,
+      <div className="tn-top-bar" style={{
+        display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 16,
         flexWrap: "wrap",
       }}>
         <button
@@ -445,28 +445,29 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
           className="tn-back-btn"
           style={{
             display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "9px 16px", borderRadius: 10,
+            padding: "8px 14px", borderRadius: 10,
             border: "1.5px solid var(--border)", background: "var(--surface)",
             color: "var(--text-primary)", fontFamily: "'Sora', sans-serif",
-            fontSize: 13, fontWeight: 600, cursor: "pointer",
-            transition: "all .15s ease",
+            fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+            transition: "all .15s ease", flexShrink: 0,
           }}
         >
-          <ArrowLeft size={16} /> Back to Roadmap
+          <ArrowLeft size={15} /> Back to Roadmap
         </button>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 200 }}>
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
+            display: "inline-flex", alignItems: "center", gap: 5,
             background: `${track.color}15`, color: track.color,
-            padding: "3px 10px", borderRadius: 20, fontSize: 11,
+            padding: "2px 8px", borderRadius: 20, fontSize: 10.5,
             fontFamily: "'JetBrains Mono', monospace", fontWeight: 700,
             marginBottom: 4,
           }}>
-            <Layers size={12} /> {track.title}
+            <Layers size={11} /> {track.title}
           </div>
-          <h2 style={{
-            fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800,
-            color: "var(--text-primary)", margin: "4px 0 0", lineHeight: 1.3,
+          <h2 className="tn-main-title" style={{
+            fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800,
+            color: "var(--text-primary)", margin: "2px 0 0", lineHeight: 1.3,
+            wordBreak: "break-word",
           }}>
             📒 {topic.name}
           </h2>
@@ -477,10 +478,10 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
       {loading && (
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "80px 20px", flexDirection: "column", gap: 12,
+          padding: "60px 20px", flexDirection: "column", gap: 12,
         }}>
-          <Loader2 size={32} className="spin" color={track.color} />
-          <span style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--text-secondary)" }}>
+          <Loader2 size={28} className="spin" color={track.color} />
+          <span style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "var(--text-secondary)" }}>
             Loading notes...
           </span>
         </div>
@@ -490,10 +491,10 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
       {error && !loading && (
         <div style={{
           background: "rgba(239,68,68,0.08)", border: "1.5px solid rgba(239,68,68,0.2)",
-          borderRadius: 12, padding: "24px", textAlign: "center",
+          borderRadius: 12, padding: "20px", textAlign: "center",
         }}>
-          <AlertCircle size={24} color="#EF4444" style={{ marginBottom: 8 }} />
-          <p style={{ color: "#EF4444", fontSize: 14, margin: 0 }}>{error}</p>
+          <AlertCircle size={22} color="#EF4444" style={{ marginBottom: 8 }} />
+          <p style={{ color: "#EF4444", fontSize: 13.5, margin: 0 }}>{error}</p>
         </div>
       )}
 
@@ -501,13 +502,13 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
       {!loading && !error && pages.length === 0 && (
         <div style={{
           background: "var(--surface)", border: "1.5px dashed var(--border)",
-          borderRadius: 16, padding: "60px 24px", textAlign: "center",
+          borderRadius: 16, padding: "50px 20px", textAlign: "center",
         }}>
-          <FileText size={48} color="var(--text-muted)" style={{ marginBottom: 12, opacity: 0.5 }} />
-          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 8px" }}>
+          <FileText size={42} color="var(--text-muted)" style={{ marginBottom: 12, opacity: 0.5 }} />
+          <h3 style={{ fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 8px" }}>
             No Notes Yet
           </h3>
-          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 14, color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto 20px" }}>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: 13.5, color: "var(--text-secondary)", maxWidth: 400, margin: "0 auto 20px" }}>
             {isAdmin
               ? "Start by creating the first page for this topic. Use the template to get started quickly!"
               : "Notes for this topic are coming soon. Check back later!"}
@@ -517,13 +518,13 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
               onClick={() => { setEditingPage(null); setEditorOpen(true); }}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "11px 24px", borderRadius: 10, border: "none",
+                padding: "10px 20px", borderRadius: 10, border: "none",
                 background: "#3D5AFE", color: "#FFFFFF",
-                fontFamily: "'Sora', sans-serif", fontSize: 13.5, fontWeight: 700,
+                fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 700,
                 cursor: "pointer",
               }}
             >
-              <Plus size={16} /> Create First Page
+              <Plus size={15} /> Create First Page
             </button>
           )}
         </div>
@@ -531,185 +532,256 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
 
       {/* Content Area — Has pages */}
       {!loading && !error && pages.length > 0 && (
-        <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-          {/* Left Sidebar — Page Tabs */}
-          <div className="tn-sidebar" style={{
-            width: 220, flexShrink: 0,
-            background: "var(--surface)", border: "1.5px solid var(--border)",
-            borderRadius: 14, padding: 12, position: "sticky", top: 90,
+        <>
+          {/* Mobile Horizontal Page Pills Selector (visible on mobile only) */}
+          <div className="tn-mobile-page-tabs" style={{
+            display: "none",
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            gap: 8,
+            paddingBottom: 10,
+            marginBottom: 12,
+            WebkitOverflowScrolling: "touch",
           }}>
-            <div style={{
-              fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
-              color: "var(--text-muted)", fontWeight: 700, marginBottom: 8,
-              textTransform: "uppercase", letterSpacing: 1,
-            }}>
-              Pages ({pages.length})
-            </div>
             {pages.map((page, idx) => (
               <button
                 key={page.id}
                 onClick={() => setActivePage(idx)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 8, width: "100%",
-                  padding: "10px 12px", borderRadius: 8, border: "none",
-                  background: activePage === idx ? `${track.color}15` : "transparent",
-                  color: activePage === idx ? track.color : "var(--text-secondary)",
-                  fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 600,
-                  cursor: "pointer", textAlign: "left",
-                  borderLeft: activePage === idx ? `3px solid ${track.color}` : "3px solid transparent",
-                  transition: "all .15s ease", marginBottom: 4,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "7px 12px",
+                  borderRadius: 20,
+                  border: `1.5px solid ${activePage === idx ? track.color : "var(--border)"}`,
+                  background: activePage === idx ? track.color : "var(--surface)",
+                  color: activePage === idx ? "#FFFFFF" : "var(--text-secondary)",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
                 }}
               >
-                <FileText size={14} />
-                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span>P{idx + 1}:</span>
+                <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis" }}>
                   {page.page_title}
                 </span>
               </button>
             ))}
-
-            {/* Admin: Add New Page */}
             {isAdmin && (
               <button
                 onClick={() => { setEditingPage(null); setEditorOpen(true); }}
                 style={{
-                  display: "flex", alignItems: "center", gap: 6, width: "100%",
-                  padding: "10px 12px", borderRadius: 8,
-                  border: "1.5px dashed var(--border)", background: "transparent",
-                  color: "var(--text-muted)", fontFamily: "Inter, sans-serif",
-                  fontSize: 12, fontWeight: 600, cursor: "pointer",
-                  marginTop: 8, justifyContent: "center",
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "7px 12px",
+                  borderRadius: 20,
+                  border: "1.5px dashed var(--border)",
+                  background: "var(--surface)",
+                  color: "var(--text-muted)",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
                 }}
               >
-                <Plus size={14} /> Add Page
+                <Plus size={13} /> Add
               </button>
             )}
           </div>
 
-          {/* Right Content Area */}
-          <div ref={contentRef} style={{ flex: 1, minWidth: 0 }}>
-            {currentPage && (
-              <div
-                className="tn-content-card"
-                style={{
-                  background: "var(--surface)", border: "1.5px solid var(--border)",
-                  borderTop: `4px solid ${track.color}`,
-                  borderRadius: 16, padding: "28px 32px 32px",
-                  boxShadow: "0 10px 30px -10px rgba(0,0,0,0.06)",
-                }}
-              >
-                {/* Page Header */}
-                <div style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-                  marginBottom: 24, flexWrap: "wrap", gap: 10,
-                }}>
-                  <div>
-                    <div style={{
-                      fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
-                      color: "var(--text-muted)", marginBottom: 4, fontWeight: 600,
-                    }}>
-                      PAGE {activePage + 1} OF {pages.length}
-                    </div>
-                    <h2 style={{
-                      fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 800,
-                      color: "var(--text-primary)", margin: 0, lineHeight: 1.3,
-                    }}>
-                      {currentPage.page_title}
-                    </h2>
-                  </div>
-
-                  {/* Admin Actions */}
-                  {isAdmin && (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button
-                        onClick={() => { setEditingPage(currentPage); setEditorOpen(true); }}
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 5,
-                          padding: "7px 14px", borderRadius: 8,
-                          border: "1.5px solid #C7D2FE", background: "#EEF2FF",
-                          color: "#4F46E5", fontFamily: "'Sora', sans-serif",
-                          fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        }}
-                      >
-                        <Pencil size={12} /> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(currentPage.id)}
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 5,
-                          padding: "7px 14px", borderRadius: 8,
-                          border: "1.5px solid #FFD5DA", background: "#FFF1F2",
-                          color: "#FF4D6D", fontFamily: "'Sora', sans-serif",
-                          fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        }}
-                      >
-                        <Trash2 size={12} /> Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Rendered Content */}
-                <div className="tn-rendered-content">
-                  {renderContent(currentPage.content)}
-                </div>
-
-                {/* Page Navigation Footer */}
-                <div style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  marginTop: 32, paddingTop: 20, borderTop: "1px solid var(--border)",
-                }}>
-                  <button
-                    onClick={() => setActivePage(Math.max(0, activePage - 1))}
-                    disabled={activePage === 0}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 6,
-                      padding: "10px 18px", borderRadius: 10,
-                      border: "1.5px solid var(--border)", background: "var(--surface)",
-                      color: activePage === 0 ? "var(--text-muted)" : "var(--text-primary)",
-                      fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 600,
-                      cursor: activePage === 0 ? "not-allowed" : "pointer",
-                      opacity: activePage === 0 ? 0.5 : 1,
-                    }}
-                  >
-                    <ChevronLeft size={16} /> Previous
-                  </button>
-
-                  {/* Page dots */}
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {pages.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setActivePage(idx)}
-                        style={{
-                          width: idx === activePage ? 24 : 8, height: 8,
-                          borderRadius: 999, border: "none",
-                          background: idx === activePage ? track.color : "var(--border)",
-                          cursor: "pointer", transition: "all .2s ease",
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => setActivePage(Math.min(pages.length - 1, activePage + 1))}
-                    disabled={activePage === pages.length - 1}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 6,
-                      padding: "10px 18px", borderRadius: 10,
-                      border: "1.5px solid var(--border)", background: "var(--surface)",
-                      color: activePage === pages.length - 1 ? "var(--text-muted)" : "var(--text-primary)",
-                      fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 600,
-                      cursor: activePage === pages.length - 1 ? "not-allowed" : "pointer",
-                      opacity: activePage === pages.length - 1 ? 0.5 : 1,
-                    }}
-                  >
-                    Next <ChevronRight size={16} />
-                  </button>
-                </div>
+          <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
+            {/* Desktop Left Sidebar — Page Tabs */}
+            <div className="tn-sidebar" style={{
+              width: 220, flexShrink: 0,
+              background: "var(--surface)", border: "1.5px solid var(--border)",
+              borderRadius: 14, padding: 12, position: "sticky", top: 90,
+            }}>
+              <div style={{
+                fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
+                color: "var(--text-muted)", fontWeight: 700, marginBottom: 8,
+                textTransform: "uppercase", letterSpacing: 1,
+              }}>
+                Pages ({pages.length})
               </div>
-            )}
+              {pages.map((page, idx) => (
+                <button
+                  key={page.id}
+                  onClick={() => setActivePage(idx)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8, width: "100%",
+                    padding: "9px 11px", borderRadius: 8, border: "none",
+                    background: activePage === idx ? `${track.color}15` : "transparent",
+                    color: activePage === idx ? track.color : "var(--text-secondary)",
+                    fontFamily: "Inter, sans-serif", fontSize: 12.5, fontWeight: 600,
+                    cursor: "pointer", textAlign: "left",
+                    borderLeft: activePage === idx ? `3px solid ${track.color}` : "3px solid transparent",
+                    transition: "all .15s ease", marginBottom: 4,
+                  }}
+                >
+                  <FileText size={13} />
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {page.page_title}
+                  </span>
+                </button>
+              ))}
+
+              {/* Admin: Add New Page */}
+              {isAdmin && (
+                <button
+                  onClick={() => { setEditingPage(null); setEditorOpen(true); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6, width: "100%",
+                    padding: "9px 11px", borderRadius: 8,
+                    border: "1.5px dashed var(--border)", background: "transparent",
+                    color: "var(--text-muted)", fontFamily: "Inter, sans-serif",
+                    fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    marginTop: 8, justifyContent: "center",
+                  }}
+                >
+                  <Plus size={13} /> Add Page
+                </button>
+              )}
+            </div>
+
+            {/* Right Content Area */}
+            <div ref={contentRef} style={{ flex: 1, minWidth: 0, width: "100%" }}>
+              {currentPage && (
+                <div
+                  className="tn-content-card"
+                  style={{
+                    background: "var(--surface)", border: "1.5px solid var(--border)",
+                    borderTop: `4px solid ${track.color}`,
+                    borderRadius: 16, padding: "24px 28px 28px",
+                    boxShadow: "0 10px 30px -10px rgba(0,0,0,0.06)",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {/* Page Header */}
+                  <div className="tn-page-header" style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                    marginBottom: 20, flexWrap: "wrap", gap: 10,
+                  }}>
+                    <div style={{ flex: 1, minWidth: 180 }}>
+                      <div style={{
+                        fontSize: 11, fontFamily: "'JetBrains Mono', monospace",
+                        color: "var(--text-muted)", marginBottom: 4, fontWeight: 600,
+                      }}>
+                        PAGE {activePage + 1} OF {pages.length}
+                      </div>
+                      <h2 className="tn-card-title" style={{
+                        fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 800,
+                        color: "var(--text-primary)", margin: 0, lineHeight: 1.3,
+                        wordBreak: "break-word",
+                      }}>
+                        {currentPage.page_title}
+                      </h2>
+                    </div>
+
+                    {/* Admin Actions */}
+                    {isAdmin && (
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                        <button
+                          onClick={() => { setEditingPage(currentPage); setEditorOpen(true); }}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            padding: "6px 12px", borderRadius: 8,
+                            border: "1.5px solid #C7D2FE", background: "#EEF2FF",
+                            color: "#4F46E5", fontFamily: "'Sora', sans-serif",
+                            fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+                          }}
+                        >
+                          <Pencil size={11} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(currentPage.id)}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            padding: "6px 12px", borderRadius: 8,
+                            border: "1.5px solid #FFD5DA", background: "#FFF1F2",
+                            color: "#FF4D6D", fontFamily: "'Sora', sans-serif",
+                            fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+                          }}
+                        >
+                          <Trash2 size={11} /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Rendered Content */}
+                  <div className="tn-rendered-content">
+                    {renderContent(currentPage.content)}
+                  </div>
+
+                  {/* Page Navigation Footer */}
+                  <div className="tn-pagination-footer" style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    marginTop: 28, paddingTop: 18, borderTop: "1px solid var(--border)",
+                    gap: 8, flexWrap: "wrap",
+                  }}>
+                    <button
+                      onClick={() => setActivePage(Math.max(0, activePage - 1))}
+                      disabled={activePage === 0}
+                      className="tn-nav-btn"
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        padding: "8px 14px", borderRadius: 10,
+                        border: "1.5px solid var(--border)", background: "var(--surface)",
+                        color: activePage === 0 ? "var(--text-muted)" : "var(--text-primary)",
+                        fontFamily: "'Sora', sans-serif", fontSize: 12.5, fontWeight: 600,
+                        cursor: activePage === 0 ? "not-allowed" : "pointer",
+                        opacity: activePage === 0 ? 0.4 : 1,
+                      }}
+                    >
+                      <ChevronLeft size={15} /> Previous
+                    </button>
+
+                    {/* Page dots */}
+                    <div className="tn-dots-container" style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                      {pages.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setActivePage(idx)}
+                          aria-label={`Go to page ${idx + 1}`}
+                          style={{
+                            width: idx === activePage ? 20 : 7, height: 7,
+                            borderRadius: 999, border: "none",
+                            background: idx === activePage ? track.color : "var(--border)",
+                            cursor: "pointer", transition: "all .2s ease",
+                            padding: 0,
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => setActivePage(Math.min(pages.length - 1, activePage + 1))}
+                      disabled={activePage === pages.length - 1}
+                      className="tn-nav-btn"
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        padding: "8px 14px", borderRadius: 10,
+                        border: "1.5px solid var(--border)", background: "var(--surface)",
+                        color: activePage === pages.length - 1 ? "var(--text-muted)" : "var(--text-primary)",
+                        fontFamily: "'Sora', sans-serif", fontSize: 12.5, fontWeight: 600,
+                        cursor: activePage === pages.length - 1 ? "not-allowed" : "pointer",
+                        opacity: activePage === pages.length - 1 ? 0.4 : 1,
+                      }}
+                    >
+                      Next <ChevronRight size={15} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Editor Modal */}
@@ -726,3 +798,4 @@ export default function TopicNotesViewer({ topic, track, isAdmin, onBack }) {
     </div>
   );
 }
+

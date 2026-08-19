@@ -167,21 +167,101 @@ textarea::placeholder {
   .desktop-nav { display: none !important; }
   .mobile-toggle { display: flex !important; }
   .bottom-nav { display: flex !important; }
-  body { padding-bottom: 72px; }
-  .chat-fab { bottom: 84px !important; }
+  body { padding-bottom: 84px !important; }
+  
+  /* Hide floating chat on mobile since BottomNav already has Chat tab */
+  .chat-fab { display: none !important; }
   
   /* Make cards touch friendly and full width */
   #notes, #roadmap, #cheatsheets, #quiz {
-    padding-left: 14px !important;
-    padding-right: 14px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
 
-  /* Topic Notes: Stack sidebar below on mobile */
+  /* Topic Notes on mobile */
+  .tn-viewer {
+    padding: 10px 8px 90px !important;
+  }
+  
+  .tn-top-bar {
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .tn-main-title {
+    font-size: 17px !important;
+  }
+
   .tn-sidebar {
     display: none !important;
   }
+  
+  .tn-mobile-page-tabs {
+    display: flex !important;
+  }
+
   .tn-content-card {
-    padding: 20px 16px 24px !important;
+    padding: 16px 14px 20px !important;
+    border-radius: 14px !important;
+  }
+
+  .tn-card-title {
+    font-size: 18px !important;
+  }
+
+  .tn-rendered-content .tn-h2 {
+    font-size: 18px !important;
+    margin: 20px 0 10px !important;
+  }
+
+  .tn-rendered-content .tn-h3 {
+    font-size: 16px !important;
+    margin: 18px 0 8px !important;
+  }
+
+  .tn-rendered-content .tn-h4 {
+    font-size: 14px !important;
+    margin: 14px 0 6px !important;
+  }
+
+  .tn-rendered-content .tn-para {
+    font-size: 13.5px !important;
+    line-height: 1.65 !important;
+    margin-bottom: 10px !important;
+  }
+
+  .tn-rendered-content .tn-blockquote {
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    margin: 12px 0 !important;
+  }
+
+  .tn-rendered-content .tn-code-block {
+    margin: 12px 0 !important;
+    border-radius: 10px !important;
+  }
+
+  .tn-rendered-content .tn-code-block pre {
+    padding: 12px 14px !important;
+  }
+
+  .tn-rendered-content .tn-code-block code {
+    font-size: 12px !important;
+  }
+
+  .tn-pagination-footer {
+    gap: 6px !important;
+    padding-top: 14px !important;
+    margin-top: 20px !important;
+  }
+
+  .tn-nav-btn {
+    padding: 7px 11px !important;
+    font-size: 12px !important;
+  }
+
+  .tn-dots-container {
+    gap: 4px !important;
   }
 }
 
