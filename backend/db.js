@@ -85,7 +85,22 @@ export async function initDatabase() {
       )
     `);
 
-    console.log("✅ MySQL tables ready (notes, messages, requests, user_progress, roadmaps)");
+    // ─── Topic Notes: Roadmap topics ke liye detailed notepad pages ──
+    // Har topic ke 3-5 pages — basics, code, interview Q&A
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS topic_notes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        topic_id VARCHAR(100) NOT NULL,
+        roadmap_id VARCHAR(50) NOT NULL,
+        page_number INT NOT NULL DEFAULT 1,
+        page_title VARCHAR(500) NOT NULL,
+        content LONGTEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_topic_page (topic_id, page_number)
+      )
+    `);
+
+    console.log("✅ MySQL tables ready (notes, messages, requests, user_progress, roadmaps, topic_notes)");
   } finally {
     conn.release();
   }

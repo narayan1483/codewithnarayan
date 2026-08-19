@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CheckCircle2, Circle, Target, Flame, Trophy, Award, Sparkles, BookOpen, ChevronRight, X, HelpCircle, ExternalLink, Plus, Pencil, Trash2, Check, Layers } from "lucide-react";
 import { fetchProgress, saveProgress, fetchRoadmaps, seedRoadmaps, updateRoadmapTrack, createRoadmapTrack, deleteRoadmapTrack } from "../api.js";
+import TopicNotesViewer from "./TopicNotesViewer.jsx";
 
 const INITIAL_ROADMAP_DATA = {
   dsa: {
@@ -483,6 +484,8 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
     }
   });
   const [selectedStep, setSelectedStep] = useState(null);
+  // Topic Notes Viewer — when set, show full notepad view
+  const [viewingTopicNotes, setViewingTopicNotes] = useState(null);
   // Progress — starts empty, loaded from backend on mount
   const [completed, setCompleted] = useState(new Set());
   const [syncStatus, setSyncStatus] = useState("idle"); // "idle" | "saving" | "saved" | "error"
@@ -743,6 +746,20 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
     setTrackForm({ id: "", title: "", icon: "🚀", color: "#3D5AFE", description: "" });
     setTrackModalOpen(false);
   };
+
+  // ─── If viewing topic notes, show the full notepad viewer ──────
+  if (viewingTopicNotes) {
+    return (
+      <div id="roadmap">
+        <TopicNotesViewer
+          topic={viewingTopicNotes}
+          track={track}
+          isAdmin={isAdmin}
+          onBack={() => setViewingTopicNotes(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div id="roadmap" style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 20px 60px" }}>
@@ -1133,11 +1150,10 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
                 )}
               </button>
 
-              <a
-                href="#notes"
+              <button
                 onClick={() => {
+                  setViewingTopicNotes(selectedStep);
                   setSelectedStep(null);
-                  if (onFilterNotesBySubject) onFilterNotesBySubject(selectedStep.noteLinkSubject);
                 }}
                 style={{
                   display: "inline-flex",
@@ -1151,12 +1167,11 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
                   fontFamily: "'Sora', sans-serif",
                   fontSize: 13.5,
                   fontWeight: 700,
-                  textDecoration: "none",
                   cursor: "pointer",
                 }}
               >
                 View Notes <ExternalLink size={14} />
-              </a>
+              </button>
             </div>
           </div>
         </div>

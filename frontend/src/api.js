@@ -239,3 +239,64 @@ export async function deleteRoadmapTrack(id) {
   return res.json();
 }
 
+// ─── Feature #9: Topic Notes API (Roadmap Notepads) ───────────────
+// Har topic ke detailed notepad pages — backend mein save, 24/7 persistent
+
+// Ek topic ke sare pages fetch karo (public)
+export async function fetchTopicNotes(topicId) {
+  const res = await fetch(`${API_BASE}/api/topic-notes/${topicId}`);
+  if (!res.ok) throw new Error("Failed to fetch topic notes");
+  const data = await res.json();
+  return data.pages || [];
+}
+
+// Naya page create karo (admin only)
+export async function createTopicNotePage(data) {
+  const res = await fetch(`${API_BASE}/api/topic-notes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to create topic note page");
+  }
+  return res.json();
+}
+
+// Existing page edit karo (admin only)
+export async function updateTopicNotePage(id, data) {
+  const res = await fetch(`${API_BASE}/api/topic-notes/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to update topic note page");
+  }
+  return res.json();
+}
+
+// Page delete karo (admin only)
+export async function deleteTopicNotePage(id) {
+  const res = await fetch(`${API_BASE}/api/topic-notes/${id}`, {
+    method: "DELETE",
+    headers: { "x-admin-password": getAdminPassword() },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to delete topic note page");
+  }
+  return res.json();
+}
+
