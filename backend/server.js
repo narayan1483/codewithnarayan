@@ -8,6 +8,7 @@ import contactRouter from "./routes/contact.js";
 import adminRouter from "./routes/admin.js";
 import requestsRouter from "./routes/requests.js";
 import progressRouter from "./routes/progress.js";
+import roadmapsRouter from "./routes/roadmaps.js";
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ app.get("/", (req, res) => {
   res.json({
     message: "code.withnarayan backend is running ✅",
     tip: "This is the API server — your website is at http://localhost:5173",
-    endpoints: ["/api/health", "/api/notes", "/api/contact", "/api/admin/login", "/api/requests", "/api/admin/stats"],
+    endpoints: ["/api/health", "/api/notes", "/api/contact", "/api/admin/login", "/api/requests", "/api/admin/stats", "/api/roadmaps", "/api/progress"],
   });
 });
 
@@ -35,6 +36,7 @@ app.use("/api/contact", contactRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/requests", requestsRouter);
 app.use("/api/progress", progressRouter);
+app.use("/api/roadmaps", roadmapsRouter);
 
 // basic error handler (e.g. multer file-type errors)
 app.use((err, req, res, next) => {

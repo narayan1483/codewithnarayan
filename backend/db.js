@@ -70,7 +70,22 @@ export async function initDatabase() {
       )
     `);
 
-    console.log("✅ MySQL tables ready (notes, messages, requests, user_progress)");
+    // ─── Roadmaps: Admin-managed roadmap tracks (global) ──────────
+    // Admin jo bhi topic add/edit/delete kare wo yahan save hoga
+    // Sab users/devices ko same data milega
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS roadmaps (
+        id VARCHAR(50) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        icon VARCHAR(20) DEFAULT '🎯',
+        color VARCHAR(20) DEFAULT '#3D5AFE',
+        description TEXT,
+        steps JSON NOT NULL DEFAULT '[]',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("✅ MySQL tables ready (notes, messages, requests, user_progress, roadmaps)");
   } finally {
     conn.release();
   }

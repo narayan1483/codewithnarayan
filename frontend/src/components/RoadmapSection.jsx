@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CheckCircle2, Circle, Target, Flame, Trophy, Award, Sparkles, BookOpen, ChevronRight, X, HelpCircle, ExternalLink, Plus, Pencil, Trash2, Check, Layers } from "lucide-react";
-import { fetchProgress, saveProgress } from "../api.js";
+import { fetchProgress, saveProgress, fetchRoadmaps, seedRoadmaps, updateRoadmapTrack, createRoadmapTrack, deleteRoadmapTrack } from "../api.js";
 
 const INITIAL_ROADMAP_DATA = {
   dsa: {
@@ -471,18 +471,9 @@ const PROGRESS_STORAGE_KEY = "codewithnarayan_roadmap_progress";
 const ACTIVE_TRACK_STORAGE_KEY = "codewithnarayan_active_track";
 
 export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
-  const [roadmaps, setRoadmaps] = useState(() => {
-    try {
-      const saved = localStorage.getItem(ROADMAP_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return { ...INITIAL_ROADMAP_DATA, ...parsed };
-      }
-      return INITIAL_ROADMAP_DATA;
-    } catch {
-      return INITIAL_ROADMAP_DATA;
-    }
-  });
+  // Always start with INITIAL_ROADMAP_DATA — backend se override hoga mount pe
+  const [roadmaps, setRoadmaps] = useState(INITIAL_ROADMAP_DATA);
+  const [roadmapsLoaded, setRoadmapsLoaded] = useState(false); // backend se load hua?
 
   const [activeTrack, setActiveTrack] = useState(() => {
     try {
@@ -519,6 +510,36 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
     description: "",
   });
 
+  // ─── Backend Sync: Load roadmaps from DB on mount ────────────────
+  // Agar DB mein data hai → use karo; agar nahi (first time) → seed karo
+  useEffect(() => {
+    fetchRoadmaps()
+      .then(({ roadmaps: dbRoadmaps, seeded }) => {
+        if (seeded && dbRoadmaps) {
+          // DB mein data hai — use karo (admin ke latest changes)
+          setRoadmaps(dbRoadmaps);
+        } else {
+          // DB empty hai — INITIAL_ROADMAP_DATA already set hai
+          // Agar admin logged in hai to auto-seed kar do
+          if (isAdmin) {
+            seedRoadmaps(INITIAL_ROADMAP_DATA).catch(() => {});
+          }
+        }
+        setRoadmapsLoaded(true);
+      })
+      .catch(() => {
+        // Offline/error — localStorage fallback
+        try {
+          const saved = localStorage.getItem(ROADMAP_STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            setRoadmaps((prev) => ({ ...prev, ...parsed }));
+          }
+        } catch { }
+        setRoadmapsLoaded(true);
+      });
+  }, [isAdmin]);
+
   // ─── Backend Sync: Load global progress on mount ─────────────────
   useEffect(() => {
     fetchProgress()
@@ -552,11 +573,13 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
     };
   }, [completed]);
 
+  // ─── localStorage fallback: roadmaps ka cache (offline ke liye) ──
   useEffect(() => {
+    if (!roadmapsLoaded) return; // load hone se pehle mat likho
     try {
       localStorage.setItem(ROADMAP_STORAGE_KEY, JSON.stringify(roadmaps));
     } catch (e) { }
-  }, [roadmaps]);
+  }, [roadmaps, roadmapsLoaded]);
 
   useEffect(() => {
     try {
@@ -610,7 +633,7 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
     setTopicModalOpen(true);
   };
 
-  // Admin: Save Topic (Add or Edit)
+  // Admin: Save Topic (Add or Edit) — Backend mein bhi save karo
   const handleSaveTopic = () => {
     if (!topicForm.name.trim()) return;
 
@@ -624,9 +647,11 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    let updatedSteps;
+
     if (isEditingTopic) {
       setRoadmaps((prev) => {
-        const updatedSteps = (prev[currentKey].steps || []).map((s) => {
+        updatedSteps = (prev[currentKey].steps || []).map((s) => {
           if (s.id === editingTopicId) {
             return {
               ...s,
@@ -639,12 +664,13 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
           }
           return s;
         });
+        // Backend call: updated steps save karo
+        updateRoadmapTrack(currentKey, { steps: updatedSteps }).catch((err) =>
+          console.error("Roadmap sync error:", err.message)
+        );
         return {
           ...prev,
-          [currentKey]: {
-            ...prev[currentKey],
-            steps: updatedSteps,
-          },
+          [currentKey]: { ...prev[currentKey], steps: updatedSteps },
         };
       });
     } else {
@@ -657,51 +683,62 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
         noteLinkSubject: topicForm.noteLinkSubject,
       };
 
-      setRoadmaps((prev) => ({
-        ...prev,
-        [currentKey]: {
-          ...prev[currentKey],
-          steps: [...(prev[currentKey].steps || []), newStep],
-        },
-      }));
+      setRoadmaps((prev) => {
+        const newSteps = [...(prev[currentKey].steps || []), newStep];
+        // Backend call: naya step add hone ke baad save karo
+        updateRoadmapTrack(currentKey, { steps: newSteps }).catch((err) =>
+          console.error("Roadmap sync error:", err.message)
+        );
+        return {
+          ...prev,
+          [currentKey]: { ...prev[currentKey], steps: newSteps },
+        };
+      });
     }
 
     setTopicModalOpen(false);
     setSelectedStep(null);
   };
 
-  // Admin: Delete Topic
+  // Admin: Delete Topic — Backend mein bhi delete karo
   const handleDeleteTopic = (stepId, e) => {
     if (e) e.stopPropagation();
     if (!window.confirm("Are you sure you want to delete this roadmap topic?")) return;
 
-    setRoadmaps((prev) => ({
-      ...prev,
-      [currentKey]: {
-        ...prev[currentKey],
-        steps: (prev[currentKey].steps || []).filter((s) => s.id !== stepId),
-      },
-    }));
+    setRoadmaps((prev) => {
+      const newSteps = (prev[currentKey].steps || []).filter((s) => s.id !== stepId);
+      // Backend call: topic delete ke baad updated steps save karo
+      updateRoadmapTrack(currentKey, { steps: newSteps }).catch((err) =>
+        console.error("Roadmap sync error:", err.message)
+      );
+      return {
+        ...prev,
+        [currentKey]: { ...prev[currentKey], steps: newSteps },
+      };
+    });
     if (selectedStep && selectedStep.id === stepId) setSelectedStep(null);
   };
 
-  // Admin: Add New Track
+  // Admin: Add New Track — Backend mein bhi create karo
   const handleCreateTrack = () => {
     if (!trackForm.title.trim() || !trackForm.id.trim()) return;
     const cleanId = trackForm.id.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-    setRoadmaps((prev) => ({
-      ...prev,
-      [cleanId]: {
-        id: cleanId,
-        title: trackForm.title,
-        icon: trackForm.icon || "🎯",
-        color: trackForm.color || "#3D5AFE",
-        description: trackForm.description || "Comprehensive learning track.",
-        steps: [],
-      },
-    }));
+    const newTrack = {
+      id: cleanId,
+      title: trackForm.title,
+      icon: trackForm.icon || "🎯",
+      color: trackForm.color || "#3D5AFE",
+      description: trackForm.description || "Comprehensive learning track.",
+      steps: [],
+    };
 
+    // Backend call: naya track DB mein create karo
+    createRoadmapTrack(newTrack).catch((err) =>
+      console.error("Roadmap track create error:", err.message)
+    );
+
+    setRoadmaps((prev) => ({ ...prev, [cleanId]: newTrack }));
     setActiveTrack(cleanId);
     setTrackForm({ id: "", title: "", icon: "🚀", color: "#3D5AFE", description: "" });
     setTrackModalOpen(false);
@@ -800,6 +837,32 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
             }}
           >
             <Plus size={14} /> Add New Track (Admin)
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            title="Sab roadmaps ko database mein sync karo"
+            onClick={() => {
+              seedRoadmaps(roadmaps)
+                .then(() => alert("✅ Roadmaps successfully synced to database! Ab har device pe same data dikhega."))
+                .catch((err) => alert("❌ Sync failed: " + err.message));
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#0f4c2a",
+              color: "#4ade80",
+              border: "1px solid #166534",
+              borderRadius: 8,
+              padding: "9px 14px",
+              fontFamily: "'Sora', sans-serif",
+              fontSize: 12.5,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            ☁️ Sync to DB
           </button>
         )}
       </div>

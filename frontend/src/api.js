@@ -160,3 +160,82 @@ export async function saveProgress(completedIds) {
   if (!res.ok) throw new Error("Failed to save progress");
   return res.json();
 }
+
+// ─── Feature #8: Roadmap Data Sync (Cross-device) ─────────────────
+// Admin ke changes har jagah dikhne ke liye — localStorage nahi, DB mein save hoga
+
+// Sab roadmap tracks fetch karo (public)
+export async function fetchRoadmaps() {
+  const res = await fetch(`${API_BASE}/api/roadmaps`);
+  if (!res.ok) throw new Error("Failed to fetch roadmaps");
+  return res.json(); // { roadmaps: {...} | null, seeded: boolean }
+}
+
+// Pehli baar: INITIAL_ROADMAP_DATA ko DB mein seed karo (admin only)
+export async function seedRoadmaps(roadmaps) {
+  const res = await fetch(`${API_BASE}/api/roadmaps/seed`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+    body: JSON.stringify({ roadmaps }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to seed roadmaps");
+  }
+  return res.json();
+}
+
+// Naya roadmap track create karo (admin only)
+export async function createRoadmapTrack(track) {
+  const res = await fetch(`${API_BASE}/api/roadmaps`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+    body: JSON.stringify(track),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to create roadmap track");
+  }
+  return res.json();
+}
+
+// Existing track update karo — steps/title/desc (admin only)
+export async function updateRoadmapTrack(id, data) {
+  const res = await fetch(`${API_BASE}/api/roadmaps/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to update roadmap track");
+  }
+  return res.json();
+}
+
+// Track delete karo (admin only)
+export async function deleteRoadmapTrack(id) {
+  const res = await fetch(`${API_BASE}/api/roadmaps/${id}`, {
+    method: "DELETE",
+    headers: { "x-admin-password": getAdminPassword() },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to delete roadmap track");
+  }
+  return res.json();
+}
+
