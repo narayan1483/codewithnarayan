@@ -59,7 +59,18 @@ export async function initDatabase() {
       )
     `);
 
-    console.log("✅ MySQL tables ready (notes, messages, requests)");
+    // ─── User Progress: Cross-device roadmap sync ─────────────────
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS user_progress (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        completed_ids JSON NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_email (email)
+      )
+    `);
+
+    console.log("✅ MySQL tables ready (notes, messages, requests, user_progress)");
   } finally {
     conn.release();
   }

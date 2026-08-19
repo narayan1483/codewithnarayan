@@ -141,3 +141,22 @@ export async function fetchAdminStats() {
   if (!res.ok) throw new Error("Failed to load stats");
   return res.json();
 }
+
+// ─── Feature #7: Global Progress Sync (Cross-device) ──────────────
+// Kisi bhi device se same completed topics dikhne ke liye
+export async function fetchProgress() {
+  const res = await fetch(`${API_BASE}/api/progress`);
+  if (!res.ok) throw new Error("Failed to fetch progress");
+  const data = await res.json();
+  return data.completedIds || [];
+}
+
+export async function saveProgress(completedIds) {
+  const res = await fetch(`${API_BASE}/api/progress`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ completedIds }),
+  });
+  if (!res.ok) throw new Error("Failed to save progress");
+  return res.json();
+}

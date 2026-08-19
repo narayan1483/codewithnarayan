@@ -7,6 +7,7 @@ import notesRouter from "./routes/notes.js";
 import contactRouter from "./routes/contact.js";
 import adminRouter from "./routes/admin.js";
 import requestsRouter from "./routes/requests.js";
+import progressRouter from "./routes/progress.js";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use("/api/notes", notesRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/requests", requestsRouter);
+app.use("/api/progress", progressRouter);
 
 // basic error handler (e.g. multer file-type errors)
 app.use((err, req, res, next) => {
