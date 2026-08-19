@@ -80,7 +80,7 @@ export async function initDatabase() {
         icon VARCHAR(20) DEFAULT '🎯',
         color VARCHAR(20) DEFAULT '#3D5AFE',
         description TEXT,
-        steps JSON NOT NULL DEFAULT '[]',
+        steps JSON NOT NULL,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
