@@ -1,61 +1,106 @@
-# code.withnarayan — Frontend
+# ⚛️ code.withnarayan — Frontend Client
 
-React (Vite) frontend for the code.withnarayan notes marketplace, connected
-to a real Node.js backend.
+Modern React 18 + Vite web client for **code.withnarayan**, designed with rich aesthetics, smooth animations, and full mobile touch responsiveness.
 
-## Run locally
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=flat-square&logo=react)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?style=flat-square&logo=vite)](https://vitejs.dev)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?style=flat-square&logo=vercel)](https://codewithnarayan.vercel.app)
 
-**1. Start the backend first** (see `codewithnarayan-backend/README.md`):
+---
+
+## 🌟 Key Features
+
+- 🗂️ **Dynamic Category Hubs:** 6 interactive study hub boxes with smooth sliding expansion & 24/7 MySQL cloud sync.
+- 🏆 **Daily Interview Placement Quiz:** Interactive MCQ test with real-time score calculation, instant green/red explanations, and admin question controls.
+- 📦 **Curated Placement Bundles:** Complete revision packs for DSA, Java, and System Design with one-click multi-note access.
+- ⚡ **Cheatcodes Explorer:** Fast revision syntax sheets with one-click code copy and quick subject filters.
+- 🎯 **Career Roadmaps:** Visual milestone tracks for Frontend, Backend, DevOps, DSA & System Design with persistent progress.
+- 🔍 **Spotlight Command Palette:** Instant `Ctrl + K` search across notes, subjects, and study materials.
+- 📱 **Mobile Touch Bottom Navigation:** Floating glassmorphic bottom bar (`BottomNav.jsx`) optimized for all mobile screens (320px–768px).
+- 🌓 **Dark / Light Mode:** Persistent theme switcher with frosted glass header backdrop.
+
+---
+
+## 🚀 Local Development
+
+### 1. Install Dependencies
 ```bash
-cd codewithnarayan-backend
 npm install
+```
+
+### 2. Environment Variables (.env)
+Create a `.env` file in the `frontend` root:
+```env
+VITE_API_URL=https://codewithnarayan-backend.onrender.com
+# For local backend testing, use:
+# VITE_API_URL=http://localhost:5000
+```
+
+### 3. Start Development Server
+```bash
 npm run dev
 ```
-Backend runs at `http://localhost:5000`.
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-**2. Start the frontend:**
+### 4. Build for Production
 ```bash
-npm install
-npm run dev
-```
-Open the URL it prints (usually http://localhost:5173).
-
-If your backend runs somewhere other than `localhost:5000`, create a `.env`
-file here with:
-```
-VITE_API_URL=https://your-backend-url.com
+npm run build
 ```
 
-## Admin mode
+---
 
-Click the small **lock icon** in the top-right of the header and log in
-with the password set in the backend's `.env` (`ADMIN_PASSWORD`, default
-`changeme123` — change it before going live).
+## 📂 Component Structure
 
-Once logged in as admin, you'll see:
-- **Add Note** button in the header — publish with a real PDF upload
-  *or* a Google Drive link (either works), and type any subject you want
-  (not limited to a fixed list)
-- A **trash icon** inside any note's detail popup, to delete it
+```
+frontend/src/
+├── components/
+│   ├── AboutSection.jsx         # Founder bio & mission
+│   ├── AddNoteModal.jsx         # Admin note upload modal (PDF / Drive)
+│   ├── AdminLoginModal.jsx      # Admin passkey login modal
+│   ├── AnnouncementBanner.jsx   # Top dynamic announcement ribbon
+│   ├── BottomNav.jsx            # Mobile floating bottom touch bar
+│   ├── BundlesSection.jsx       # Placement bundles cards
+│   ├── CategoryHubSection.jsx   # Category Hubs with MySQL backend sync
+│   ├── ChatWidget.jsx           # Floating/integrated student chat
+│   ├── CheatsheetSection.jsx    # Syntax sheets with instant copy
+│   ├── CommandPalette.jsx       # Spotlight search (Ctrl+K)
+│   ├── ContactSection.jsx       # Direct contact form
+│   ├── Footer.jsx               # Footer links & socials
+│   ├── Header.jsx               # Glassmorphic header & stats
+│   ├── Hero.jsx                 # Animated gradient hero & search
+│   ├── HubCategoryModal.jsx     # Admin category editor modal
+│   ├── NoteCard.jsx             # Individual handwritten note card
+│   ├── NoteModal.jsx            # PDF viewer modal & download
+│   ├── NotesSection.jsx         # Subject filter tabs & note grid
+│   ├── QuizSection.jsx          # Daily Placement MCQ challenge
+│   ├── RecentlyViewed.jsx       # Recently viewed notes history
+│   ├── RequestNoteModal.jsx     # Student note request modal
+│   ├── RoadmapSection.jsx       # Interactive career roadmaps
+│   ├── Toast.jsx                # Floating toast notifications
+│   ├── TopicNotesViewer.jsx     # Multi-page topic notes reader
+│   └── TrendingSection.jsx      # Trending notes of the week
+├── api.js                       # Centralized API service layer
+├── App.jsx                      # Main app shell & section coordinator
+├── index.css                    # Design tokens, mobile CSS & animations
+└── main.jsx                     # Vite React entry point
+```
 
-Regular visitors (not logged in) can only browse, search, and download —
-they never see Add Note or delete options.
+---
 
-## What's working now (real, not just in-browser)
+## 🔒 Admin Controls
 
-- Notes catalog — fetched live from the backend/database
-- **Add Note** (admin only) — publishes a real note, with a PDF upload or
-  a Drive link
-- **Delete Note** (admin only) — removes a note and its file permanently
-- **Get Notes** — downloads the actual file (uploaded PDF or opens the
-  Drive link), and increments the real download counter
-- **Contact form** — saves messages to the database (read them via
-  `GET /api/contact` on the backend)
-- Wishlist, dark mode, admin login session — per-browser (localStorage),
-  which is correct since those are personal, not shared data
+Click the **Lock icon** in the top navigation and enter your admin password:
+- **Add / Edit Notes:** Upload PDFs or link Google Drive files.
+- **Manage Category Hubs:** Create, edit colors, change icons, reorder, or delete category boxes with live MySQL sync.
+- **Manage Quiz Questions:** Publish new interview questions or update existing ones.
+- **View Live Analytics:** Total notes, downloads, messages, and student requests directly in the top admin bar.
 
-## Still to add
+---
 
-- Razorpay payment integration
-- Deploy backend somewhere with persistent storage (Render/Railway/a VPS)
-  and point `VITE_API_URL` at it, then deploy this frontend to Vercel/Netlify
+## 🌐 Deployment (Vercel)
+
+The frontend is configured for zero-config deployments on **Vercel**:
+1. Connect your GitHub repository to Vercel.
+2. Set Root Directory to `frontend`.
+3. Add Environment Variable `VITE_API_URL` pointing to your backend URL.
+4. Deploy!
