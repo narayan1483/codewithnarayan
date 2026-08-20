@@ -1,5 +1,15 @@
 import React, { useMemo } from "react";
-import { ArrowDownUp, Sparkles, Heart, Flame, Star, BookOpen, Layers } from "lucide-react";
+import {
+  ArrowDownUp,
+  Sparkles,
+  Heart,
+  Flame,
+  Star,
+  BookOpen,
+  Layers,
+  ArrowLeft,
+  ChevronUp,
+} from "lucide-react";
 import { colorFor, iconFor } from "../data.js";
 import NoteCard from "./NoteCard.jsx";
 
@@ -18,6 +28,7 @@ export default function NotesSection({
   onRequestClick,
   filterTag,
   setFilterTag,
+  onCollapse,
 }) {
   const subjectChips = useMemo(() => {
     const counts = new Map();
@@ -39,10 +50,103 @@ export default function NotesSection({
   ];
 
   return (
-    <>
+    <div
+      id="notes"
+      className="notes-explorer-container"
+      style={{
+        animation: "slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both",
+      }}
+    >
+      {/* Top Banner Toolbar with Back / Collapse button */}
+      <div
+        style={{
+          maxWidth: 1080,
+          margin: "0 auto",
+          padding: "0 20px 14px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 10,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="hub-back-btn"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid var(--border)",
+                background: "var(--surface)",
+                color: "var(--text-primary)",
+                fontFamily: "'Sora', sans-serif",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Categories</span>
+            </button>
+          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 18 }}>📚</span>
+            <span
+              style={{
+                fontFamily: "'Sora', sans-serif",
+                fontWeight: 800,
+                fontSize: 16,
+                color: "var(--text-primary)",
+              }}
+            >
+              Notes Explorer
+            </span>
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 11,
+                padding: "2px 7px",
+                borderRadius: 999,
+                background: "rgba(61, 90, 254, 0.1)",
+                color: "#3D5AFE",
+                fontWeight: 700,
+              }}
+            >
+              {totalCount} Total
+            </span>
+          </div>
+        </div>
+
+        {onCollapse && (
+          <button
+            onClick={onCollapse}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              background: "transparent",
+              border: "none",
+              color: "var(--text-secondary)",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "'Sora', sans-serif",
+            }}
+          >
+            <span>Collapse View</span>
+            <ChevronUp size={14} />
+          </button>
+        )}
+      </div>
+
       {/* Dynamic Subject Badges with Counts & Mobile Touch Scroll */}
       <div
-        id="notes"
         style={{
           maxWidth: 1080,
           margin: "0 auto",
@@ -60,12 +164,20 @@ export default function NotesSection({
           className="chip"
           onClick={() => setActive("all")}
           style={{
-            fontFamily: "'Sora', sans-serif", fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap",
-            padding: "9px 15px", borderRadius: 8, cursor: "pointer", flexShrink: 0,
+            fontFamily: "'Sora', sans-serif",
+            fontSize: 12.5,
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+            padding: "9px 15px",
+            borderRadius: 8,
+            cursor: "pointer",
+            flexShrink: 0,
             border: `1.5px solid ${active === "all" ? "var(--text-primary)" : "var(--border)"}`,
             background: active === "all" ? "var(--text-primary)" : "var(--surface)",
             color: active === "all" ? "var(--bg)" : "var(--text-secondary)",
-            display: "flex", alignItems: "center", gap: 6,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
           <span>📑</span> All Notes <span style={{ opacity: 0.7, fontSize: 11 }}>({totalCount})</span>
@@ -81,12 +193,20 @@ export default function NotesSection({
               className="chip"
               onClick={() => setActive(name)}
               style={{
-                fontFamily: "'Sora', sans-serif", fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap",
-                padding: "9px 15px", borderRadius: 8, cursor: "pointer", flexShrink: 0,
+                fontFamily: "'Sora', sans-serif",
+                fontSize: 12.5,
+                fontWeight: 700,
+                whiteSpace: "nowrap",
+                padding: "9px 15px",
+                borderRadius: 8,
+                cursor: "pointer",
+                flexShrink: 0,
                 border: `1.5px solid ${isActive ? color : "var(--border)"}`,
                 background: isActive ? color : "var(--surface)",
                 color: isActive ? "#FFFFFF" : "var(--text-secondary)",
-                display: "flex", alignItems: "center", gap: 6,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
                 transition: "all 0.15s ease",
               }}
             >
@@ -111,12 +231,20 @@ export default function NotesSection({
           className="chip"
           onClick={() => setActive("wishlist")}
           style={{
-            fontFamily: "'Sora', sans-serif", fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap",
-            padding: "9px 15px", borderRadius: 8, cursor: "pointer", flexShrink: 0,
+            fontFamily: "'Sora', sans-serif",
+            fontSize: 12.5,
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+            padding: "9px 15px",
+            borderRadius: 8,
+            cursor: "pointer",
+            flexShrink: 0,
             border: `1.5px solid ${active === "wishlist" ? "#FF4D6D" : "var(--border)"}`,
             background: active === "wishlist" ? "#FF4D6D" : "var(--surface)",
             color: active === "wishlist" ? "#FFFFFF" : "var(--text-secondary)",
-            display: "flex", alignItems: "center", gap: 6,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
           <Heart size={13} fill={active === "wishlist" ? "#fff" : "none"} color={active === "wishlist" ? "#fff" : "#FF4D6D"} />
@@ -166,9 +294,19 @@ export default function NotesSection({
       </div>
 
       {/* Showing count and Sort selector */}
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 20px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          maxWidth: 1080,
+          margin: "0 auto",
+          padding: "0 20px 8px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <div style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600, fontFamily: "'Sora', sans-serif" }}>
           Showing <strong style={{ color: "var(--text-primary)" }}>{filtered.length}</strong> {filtered.length === 1 ? "note" : "notes"}
+          {query && <span> for &ldquo;{query}&rdquo;</span>}
         </div>
         <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6 }}>
           <ArrowDownUp size={13} color="#9A9A94" />
@@ -176,8 +314,15 @@ export default function NotesSection({
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             style={{
-              fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "var(--text-secondary)",
-              background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: 6, padding: "6px 10px", cursor: "pointer", outline: "none",
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              background: "var(--surface)",
+              border: "1.5px solid var(--border)",
+              borderRadius: 6,
+              padding: "6px 10px",
+              cursor: "pointer",
+              outline: "none",
             }}
           >
             <option value="newest">Newest First</option>
@@ -207,9 +352,22 @@ export default function NotesSection({
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, background: "var(--bg-secondary)", borderRadius: 16, border: "1.5px dashed var(--border)" }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "60px 20px",
+              color: "var(--text-muted)",
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 13,
+              background: "var(--bg-secondary)",
+              borderRadius: 16,
+              border: "1.5px dashed var(--border)",
+            }}
+          >
             <p style={{ margin: "0 0 12px" }}>
-              {active === "wishlist" ? "No saved notes yet — tap the heart on any note card to save it." : `No notes found matching your criteria.`}
+              {active === "wishlist"
+                ? "No saved notes yet — tap the heart on any note card to save it."
+                : `No notes found matching your criteria.`}
             </p>
             {onRequestClick && (
               <button
@@ -240,7 +398,6 @@ export default function NotesSection({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
-

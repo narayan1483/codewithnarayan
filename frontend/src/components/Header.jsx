@@ -30,10 +30,12 @@ export default function Header({
       style={{
         position: "sticky",
         top: 0,
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(8px)",
+        background: theme === "dark" ? "rgba(25, 28, 36, 0.94)" : "rgba(255, 255, 255, 0.94)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         borderBottom: "1.5px solid var(--border)",
         zIndex: 40,
+        transition: "background 0.2s ease, border-color 0.2s ease",
       }}
     >
       {/* Admin Analytics Bar */}

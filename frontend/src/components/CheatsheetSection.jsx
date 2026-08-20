@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Code2, Copy, Check, Terminal, Sparkles, Cpu, Plus, Trash2, X } from "lucide-react";
+import { Code2, Copy, Check, Terminal, Sparkles, Cpu, Plus, Trash2, X, ArrowLeft, ChevronUp } from "lucide-react";
 
 const INITIAL_CHEATSHEETS = [
   {
@@ -193,7 +193,7 @@ def predict(req: QueryRequest):
 const CHEATSHEET_STORAGE_KEY = "codewithnarayan_custom_cheatsheets";
 const ACTIVE_CHEATSHEET_TAB_STORAGE_KEY = "codewithnarayan_active_cheatsheet_tab";
 
-export default function CheatsheetSection({ onCopyToast, isAdmin }) {
+export default function CheatsheetSection({ onCopyToast, isAdmin, onCollapse }) {
   const [sheets, setSheets] = useState(() => {
     try {
       const saved = localStorage.getItem(CHEATSHEET_STORAGE_KEY);
@@ -222,9 +222,40 @@ export default function CheatsheetSection({ onCopyToast, isAdmin }) {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newSnippet, setNewSnippet] = useState({ name: "", lang: "Java", code: "" });
 
-  // Admin New Cheatsheet Category Modal
   const [newCatModalOpen, setNewCatModalOpen] = useState(false);
   const [newCatForm, setNewCatForm] = useState({ id: "", title: "", icon: "⚡", color: "#3D5AFE" });
+
+  // Dynamic Typewriter Ticker for Quick Revision Hub
+  const CHEATSHEET_HIGHLIGHTS = [
+    "⚡ Quick Revision Hub • 1-Click Code Cheatcodes",
+    "🌲 DSA Patterns • Two Pointers, Binary Search & Sliding Window",
+    "☕ Java 8 Streams & Lambdas • Filters, Mappings & Collectors",
+    "⚛️ Modern React Hooks • custom hooks, useEffect & State Patterns",
+    "🗄️ SQL Placement Queries • Joins, Aggregations & Group By",
+    "🐍 Python & AI Snippets • PyTorch, NumPy & Vector Ops",
+  ];
+  const [typeIdx, setTypeIdx] = useState(0);
+  const [typeSubIdx, setTypeSubIdx] = useState(0);
+  const [typeDeleting, setTypeDeleting] = useState(false);
+
+  useEffect(() => {
+    if (CHEATSHEET_HIGHLIGHTS.length === 0) return;
+    if (!typeDeleting && typeSubIdx === CHEATSHEET_HIGHLIGHTS[typeIdx].length) {
+      const timeout = setTimeout(() => setTypeDeleting(true), 2200);
+      return () => clearTimeout(timeout);
+    }
+    if (typeDeleting && typeSubIdx === 0) {
+      setTypeDeleting(false);
+      setTypeIdx((prev) => (prev + 1) % CHEATSHEET_HIGHLIGHTS.length);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      setTypeSubIdx((prev) => prev + (typeDeleting ? -1 : 1));
+    }, typeDeleting ? 20 : 40);
+    return () => clearTimeout(timeout);
+  }, [typeSubIdx, typeDeleting, typeIdx]);
+
+  const typedHighlight = CHEATSHEET_HIGHLIGHTS[typeIdx]?.substring(0, typeSubIdx) || "";
 
   useEffect(() => {
     try {
@@ -262,64 +293,160 @@ export default function CheatsheetSection({ onCopyToast, isAdmin }) {
     );
     setNewSnippet({ name: "", lang: "Java", code: "" });
     setAddModalOpen(false);
-    if (onCopyToast) onCopyToast("New snippet published!", "success");
+    if (onCopyToast) onCopyToast("Snippet added successfully!", "success");
   };
 
-  const handleCreateCategory = () => {
-    if (!newCatForm.title.trim() || !newCatForm.id.trim()) return;
-    const cleanId = newCatForm.id.toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (sheets.some((s) => s.id === cleanId)) {
-      alert("A category with this ID already exists!");
-      return;
-    }
-    const newCategory = {
-      id: cleanId,
-      title: newCatForm.title,
-      icon: newCatForm.icon || "⚡",
+  const handleAddCategory = () => {
+    if (!newCatForm.title.trim()) return;
+    const catId = newCatForm.id.trim().toLowerCase().replace(/\s+/g, "_") || `cat_${Date.now()}`;
+    const createdCat = {
+      id: catId,
+      title: newCatForm.title.trim(),
+      icon: newCatForm.icon.trim() || "⚡",
       color: newCatForm.color || "#3D5AFE",
       snippets: [],
     };
-    setSheets((prev) => [...prev, newCategory]);
-    setActiveTab(cleanId);
+    setSheets((prev) => [...prev, createdCat]);
+    setActiveTab(catId);
     setNewCatForm({ id: "", title: "", icon: "⚡", color: "#3D5AFE" });
     setNewCatModalOpen(false);
-    if (onCopyToast) onCopyToast(`Category "${newCategory.title}" created!`, "success");
+    if (onCopyToast) onCopyToast(`Category "${createdCat.title}" created!`, "success");
   };
 
   const handleDeleteCategory = (catId, e) => {
-    if (e) e.stopPropagation();
+    e.stopPropagation();
     if (sheets.length <= 1) {
-      alert("You cannot delete the last remaining category.");
+      alert("At least one category must remain.");
       return;
     }
-    if (!window.confirm("Are you sure you want to delete this whole cheatsheet category?")) return;
-    setSheets((prev) => prev.filter((s) => s.id !== catId));
+    if (!window.confirm("Are you sure you want to delete this entire cheatsheet category?")) return;
+    const updated = sheets.filter((s) => s.id !== catId);
+    setSheets(updated);
     if (activeTab === catId) {
-      const remaining = sheets.filter((s) => s.id !== catId);
-      setActiveTab(remaining[0]?.id || "dsa");
+      setActiveTab(updated[0]?.id || "dsa");
     }
     if (onCopyToast) onCopyToast("Category deleted", "info");
   };
 
   return (
-    <div id="cheatsheets" style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 20px 60px" }}>
+    <div
+      id="cheatsheets"
+      className="notes-explorer-container"
+      style={{
+        maxWidth: 1080,
+        margin: "0 auto",
+        padding: "20px 20px 60px",
+        animation: "slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both",
+      }}
+    >
+      {/* Top Banner Toolbar with Back / Collapse button */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 10,
+          marginBottom: 20,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="hub-back-btn"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid var(--border)",
+                background: "var(--surface)",
+                color: "var(--text-primary)",
+                fontFamily: "'Sora', sans-serif",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Categories</span>
+            </button>
+          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 18 }}>⚡</span>
+            <span
+              style={{
+                fontFamily: "'Sora', sans-serif",
+                fontWeight: 800,
+                fontSize: 16,
+                color: "var(--text-primary)",
+              }}
+            >
+              Cheatsheets Explorer
+            </span>
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 11,
+                padding: "2px 7px",
+                borderRadius: 999,
+                background: "rgba(244, 63, 94, 0.12)",
+                color: "#F43F5E",
+                fontWeight: 700,
+              }}
+            >
+              {sheets.length} Categories
+            </span>
+          </div>
+        </div>
+
+        {onCollapse && (
+          <button
+            onClick={onCollapse}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              background: "transparent",
+              border: "none",
+              color: "var(--text-secondary)",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "'Sora', sans-serif",
+            }}
+          >
+            <span>Collapse View</span>
+            <ChevronUp size={14} />
+          </button>
+        )}
+      </div>
+
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
-            background: "rgba(0, 179, 126, 0.1)",
-            color: "#00B37E",
-            padding: "4px 12px",
-            borderRadius: 20,
+            gap: 4,
+            background: "rgba(244, 63, 94, 0.08)",
+            border: "1px solid rgba(244, 63, 94, 0.2)",
+            borderRadius: 999,
+            padding: "5px 14px",
             fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
             fontWeight: 700,
+            color: "#F43F5E",
+            fontFamily: "'JetBrains Mono', monospace",
             marginBottom: 8,
+            maxWidth: "96%",
+            overflow: "hidden",
+            boxShadow: "0 2px 8px rgba(244, 63, 94, 0.08)",
           }}
         >
-          <Cpu size={14} /> Quick Revision Hub
+          <span style={{ whiteSpace: "nowrap" }}>{typedHighlight}</span>
+          <span className="hub-typewriter-cursor" style={{ color: "#F43F5E" }}>|</span>
         </div>
         <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 8px" }}>
           Instant Code Cheatsheets

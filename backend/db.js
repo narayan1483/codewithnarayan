@@ -100,7 +100,28 @@ export async function initDatabase() {
       )
     `);
 
-    console.log("✅ MySQL tables ready (notes, messages, requests, user_progress, roadmaps, topic_notes)");
+    // ─── Category Hubs: Admin-managed home screen category boxes ──
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS category_hubs (
+        id VARCHAR(50) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        subtitle TEXT NOT NULL,
+        badge_text VARCHAR(100) NOT NULL,
+        badge VARCHAR(100) DEFAULT '',
+        ribbon VARCHAR(100) DEFAULT '',
+        icon_name VARCHAR(50) DEFAULT 'FileText',
+        gradient VARCHAR(255) NOT NULL,
+        badge_color VARCHAR(50) NOT NULL,
+        glow_color VARCHAR(100) NOT NULL,
+        action_type VARCHAR(50) DEFAULT 'subject',
+        target VARCHAR(255) DEFAULT '',
+        custom_url VARCHAR(1000) DEFAULT '',
+        sort_order INT DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("✅ MySQL tables ready (notes, messages, requests, user_progress, roadmaps, topic_notes, category_hubs)");
   } finally {
     conn.release();
   }

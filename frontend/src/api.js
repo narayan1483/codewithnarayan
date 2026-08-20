@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_URL || "https://codewithnarayan-backend.onrender.com";
 const ADMIN_KEY = "codewithnarayan_admin_password";
 
 const normalize = (n) => ({ ...n, desc: n.description, driveLink: n.drive_link });
@@ -299,4 +299,77 @@ export async function deleteTopicNotePage(id) {
   }
   return res.json();
 }
+
+// ─── Feature #10: Category Hubs API (24/7 DB Persistence) ─────────
+export async function fetchCategoryHubs() {
+  const res = await fetch(`${API_BASE}/api/hubs`);
+  if (!res.ok) throw new Error("Failed to fetch category hubs");
+  const data = await res.json();
+  return data.hubs || [];
+}
+
+export async function createCategoryHub(hubData) {
+  const res = await fetch(`${API_BASE}/api/hubs`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+    body: JSON.stringify(hubData),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to create category hub");
+  }
+  return res.json();
+}
+
+export async function updateCategoryHub(id, hubData) {
+  const res = await fetch(`${API_BASE}/api/hubs/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+    body: JSON.stringify(hubData),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to update category hub");
+  }
+  return res.json();
+}
+
+export async function deleteCategoryHub(id) {
+  const res = await fetch(`${API_BASE}/api/hubs/${id}`, {
+    method: "DELETE",
+    headers: { "x-admin-password": getAdminPassword() },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to delete category hub");
+  }
+  return res.json();
+}
+
+export async function resetCategoryHubs() {
+  const res = await fetch(`${API_BASE}/api/hubs/reset`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-password": getAdminPassword(),
+    },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) clearAdminSession();
+    throw new Error(err.error || "Failed to reset category hubs");
+  }
+  const data = await res.json();
+  return data.hubs || [];
+}
+
 

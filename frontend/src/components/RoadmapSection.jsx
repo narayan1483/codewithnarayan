@@ -471,10 +471,50 @@ const ROADMAP_STORAGE_KEY = "codewithnarayan_custom_roadmaps";
 const PROGRESS_STORAGE_KEY = "codewithnarayan_roadmap_progress";
 const ACTIVE_TRACK_STORAGE_KEY = "codewithnarayan_active_track";
 
+const ROADMAP_TOPIC_HIGHLIGHTS = [
+  "🎯 Interactive Study Roadmaps • Track Your SDE Prep",
+  "🌲 DSA Placement Roadmap • 45 Essential Patterns & LeetCode",
+  "🤖 AI & Machine Learning • Python, Math, PyTorch & LLMs",
+  "💻 Core CS Subjects • OS, DBMS, CN & System Design",
+  "☕ Java & Backend Master • Spring Boot, Streams & Microservices",
+  "🌐 Fullstack Web Dev 2026 • React, Node.js, Next.js & TypeScript",
+];
+
+function useRoadmapTypewriter(topics, typingSpeed = 40, deletingSpeed = 20, pauseTime = 2200) {
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!topics || topics.length === 0) return;
+
+    if (!isDeleting && subIndex === topics[index].length) {
+      const timeout = setTimeout(() => setIsDeleting(true), pauseTime);
+      return () => clearTimeout(timeout);
+    }
+
+    if (isDeleting && subIndex === 0) {
+      setIsDeleting(false);
+      setIndex((prev) => (prev + 1) % topics.length);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) => prev + (isDeleting ? -1 : 1));
+    }, isDeleting ? deletingSpeed : typingSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, isDeleting, index, topics, typingSpeed, deletingSpeed, pauseTime]);
+
+  return topics[index] ? topics[index].substring(0, subIndex) : "";
+}
+
 export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
   // Always start with INITIAL_ROADMAP_DATA — backend se override hoga mount pe
   const [roadmaps, setRoadmaps] = useState(INITIAL_ROADMAP_DATA);
   const [roadmapsLoaded, setRoadmapsLoaded] = useState(false); // backend se load hua?
+
+  const typedRoadmap = useRoadmapTypewriter(ROADMAP_TOPIC_HIGHLIGHTS);
 
   const [activeTrack, setActiveTrack] = useState(() => {
     try {
@@ -764,22 +804,28 @@ export default function RoadmapSection({ onFilterNotesBySubject, isAdmin }) {
   return (
     <div id="roadmap" style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 20px 60px" }}>
       <div style={{ textAlign: "center", marginBottom: 28 }}>
+        {/* Dynamic Typewriter Badge */}
         <div
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
-            background: "rgba(61, 90, 254, 0.1)",
-            color: "#3D5AFE",
-            padding: "4px 12px",
-            borderRadius: 20,
+            gap: 4,
+            background: "rgba(61, 90, 254, 0.08)",
+            border: "1px solid rgba(61, 90, 254, 0.2)",
+            borderRadius: 999,
+            padding: "5px 14px",
             fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
             fontWeight: 700,
-            marginBottom: 8,
+            color: "#3D5AFE",
+            fontFamily: "'JetBrains Mono', monospace",
+            marginBottom: 10,
+            maxWidth: "96%",
+            overflow: "hidden",
+            boxShadow: "0 2px 8px rgba(61, 90, 254, 0.08)",
           }}
         >
-          <Target size={14} /> Interactive Study Roadmaps
+          <span style={{ whiteSpace: "nowrap" }}>{typedRoadmap}</span>
+          <span className="hub-typewriter-cursor">|</span>
         </div>
         <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 8px" }}>
           Structured Preparation Roadmaps

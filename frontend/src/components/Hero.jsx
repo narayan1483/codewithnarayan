@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Search, Sparkles, Download, FileText, CheckCircle } from "lucide-react";
+import { Search, Sparkles, Download, FileText, CheckCircle, ArrowRight, BookOpen } from "lucide-react";
 import LiveCounter from "./LiveCounter.jsx";
 
-const WORDS = ["hired.", "placed.", "confident.", "interview-ready."];
+const WORDS = [
+  "hired in top tech.",
+  "crack interviews.",
+  "placed in MAANG.",
+  "ace DSA rounds.",
+  "interview-ready.",
+];
 
 export default function Hero({ query, setQuery, totalNotes, totalDownloads, onRequestClick }) {
   const [wordIndex, setWordIndex] = useState(0);
   const [display, setDisplay] = useState("");
   const [deleting, setDeleting] = useState(false);
+
   // Typing animation for founder name
   const FOUNDER = "Narayan Prasad. Maurya";
   const [nameDisplay, setNameDisplay] = useState("");
@@ -15,13 +22,13 @@ export default function Hero({ query, setQuery, totalNotes, totalDownloads, onRe
 
   useEffect(() => {
     const current = WORDS[wordIndex];
-    const speed = deleting ? 40 : 75;
+    const speed = deleting ? 35 : 65;
     const timeout = setTimeout(() => {
       if (!deleting) {
         if (display.length < current.length) {
           setDisplay(current.slice(0, display.length + 1));
         } else {
-          setTimeout(() => setDeleting(true), 1300);
+          setTimeout(() => setDeleting(true), 1600);
         }
       } else {
         if (display.length > 0) {
@@ -35,7 +42,7 @@ export default function Hero({ query, setQuery, totalNotes, totalDownloads, onRe
     return () => clearTimeout(timeout);
   }, [display, deleting, wordIndex]);
 
-  // Name typing effect (single word-like typing + delete loop)
+  // Founder name typing effect
   useEffect(() => {
     const current = FOUNDER;
     const speed = nameDeleting ? 40 : 80;
@@ -44,7 +51,7 @@ export default function Hero({ query, setQuery, totalNotes, totalDownloads, onRe
         if (nameDisplay.length < current.length) {
           setNameDisplay(current.slice(0, nameDisplay.length + 1));
         } else {
-          setTimeout(() => setNameDeleting(true), 1400);
+          setTimeout(() => setNameDeleting(true), 2000);
         }
       } else {
         if (nameDisplay.length > 0) {
@@ -58,16 +65,34 @@ export default function Hero({ query, setQuery, totalNotes, totalDownloads, onRe
   }, [nameDisplay, nameDeleting]);
 
   return (
-    <div style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 20px 24px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+    <section className="hero-container" style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 20px 24px" }}>
+      {/* Ambient background blur glow */}
+      <div className="hero-ambient-glow" />
+
+      {/* Top Badges Bar */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 20, position: "relative", zIndex: 1 }}>
         <div
           style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            background: "var(--bg-secondary)", padding: "5px 12px 5px 9px", borderRadius: 999,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            background: "var(--surface)",
+            border: "1.5px solid var(--border)",
+            padding: "5px 14px 5px 10px",
+            borderRadius: 999,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
           }}
         >
-          <span style={{ width: 6, height: 6, borderRadius: 999, background: "#00B37E" }} />
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11.5, color: "var(--text-secondary)", letterSpacing: 0.3 }}>
+          <span style={{ width: 7, height: 7, borderRadius: 999, background: "#10B981", boxShadow: "0 0 8px #10B981" }} />
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: "var(--text-secondary)",
+              letterSpacing: 0.4,
+            }}
+          >
             DSA · JAVA · WEB DEV · SYSTEM DESIGN
           </span>
         </div>
@@ -79,7 +104,7 @@ export default function Hero({ query, setQuery, totalNotes, totalDownloads, onRe
             alignItems: "center",
             gap: 6,
             background: "linear-gradient(135deg, rgba(61, 90, 254, 0.12) 0%, rgba(124, 77, 255, 0.12) 100%)",
-            border: "1px solid rgba(61, 90, 254, 0.25)",
+            border: "1.5px solid rgba(61, 90, 254, 0.3)",
             padding: "5px 14px",
             borderRadius: 999,
             cursor: "pointer",
@@ -87,101 +112,203 @@ export default function Hero({ query, setQuery, totalNotes, totalDownloads, onRe
             fontSize: 12,
             fontWeight: 700,
             fontFamily: "'Sora', sans-serif",
-            transition: "transform 0.2s ease",
+            transition: "all 0.2s ease",
+            boxShadow: "0 2px 6px rgba(61, 90, 254, 0.1)",
           }}
         >
-          <Sparkles size={13} /> Request Note
+          <Sparkles size={13} color="#3D5AFE" /> Request Note
         </button>
       </div>
 
+      {/* Main Hero Headline */}
       <h1
         style={{
-          fontFamily: "'Sora', sans-serif", fontWeight: 800, color: "var(--text-primary)",
-          fontSize: "clamp(30px, 6vw, 48px)", lineHeight: 1.1, margin: "0 0 16px", maxWidth: 620, letterSpacing: -0.5,
-          minHeight: "2.4em",
+          fontFamily: "'Sora', sans-serif",
+          fontWeight: 800,
+          color: "var(--text-primary)",
+          fontSize: "clamp(26px, 4.8vw, 42px)",
+          lineHeight: 1.2,
+          margin: "0 0 14px",
+          maxWidth: 820,
+          letterSpacing: "-0.5px",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        Handwritten notes<br />that get you{" "}
-        <span style={{ background: "linear-gradient(transparent 58%, #B4FF39 58%)" }}>{display}</span>
-        <span style={{ opacity: 0.5 }}>|</span>
+        Handwritten notes<br />
+        <span style={{ display: "inline-block", minHeight: "1.2em", whiteSpace: "nowrap" }}>
+          that get you{" "}
+          <span className="hero-dynamic-word">{display}</span>
+          <span className="hero-dynamic-cursor">|</span>
+        </span>
       </h1>
 
-      <p style={{ fontFamily: "Inter, sans-serif", fontSize: 15.5, color: "var(--text-secondary)", maxWidth: 490, lineHeight: 1.6, margin: "0 0 24px" }}>
-        Subject-wise handwritten notes, built from what actually gets asked in tech interviews — pick a topic and start today.
+      {/* Subtitle */}
+      <p
+        style={{
+          fontFamily: "'Inter', sans-serif",
+          fontSize: "clamp(14.5px, 2vw, 16.5px)",
+          color: "var(--text-secondary)",
+          maxWidth: 580,
+          lineHeight: 1.65,
+          margin: "0 0 20px",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        Subject-wise handwritten notes, visual diagrams & interview cheatcodes crafted from what gets asked in tech interviews — pick a topic and start today.
       </p>
 
-      <div className="founder-tag">
-        Founder: <span className="founder-name">{nameDisplay}</span> — Start learning with handwritten notes.
+      {/* Founder Badge */}
+      <div className="founder-tag" style={{ position: "relative", zIndex: 1, marginBottom: 22 }}>
+        Founder: <span className="founder-name">{nameDisplay}</span>
+        <span className="hero-dynamic-cursor" style={{ fontSize: 12 }}>|</span>
       </div>
 
-      {/* Feature #4: Animated Stats Banner */}
+      {/* Animated Stats Banner */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
           gap: 12,
-          maxWidth: 480,
+          maxWidth: 520,
           margin: "0 0 24px",
-          background: "var(--bg-secondary)",
+          background: "var(--surface)",
           padding: "14px 16px",
-          borderRadius: 14,
-          border: "1px solid var(--border)",
+          borderRadius: 16,
+          border: "1.5px solid var(--border)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(0, 179, 126, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "#00B37E", flexShrink: 0 }}>
-            <Download size={16} />
+        <div className="hero-stat-card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 6px", borderRadius: 8 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: "rgba(16, 185, 129, 0.12)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#10B981",
+              flexShrink: 0,
+            }}
+          >
+            <Download size={17} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", fontFamily: "'Sora', sans-serif" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", fontFamily: "'Sora', sans-serif" }}>
               {totalDownloads ? `${(totalDownloads + 3400).toLocaleString()}+` : "3,500+"}
             </div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>Downloads</div>
+            <div style={{ fontSize: 11.5, color: "var(--text-secondary)", fontWeight: 500 }}>Downloads</div>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(61, 90, 254, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "#3D5AFE", flexShrink: 0 }}>
-            <FileText size={16} />
+        <div className="hero-stat-card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 6px", borderRadius: 8 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: "rgba(61, 90, 254, 0.12)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#3D5AFE",
+              flexShrink: 0,
+            }}
+          >
+            <FileText size={17} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", fontFamily: "'Sora', sans-serif" }}>
-              {totalNotes || 17} Sets
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", fontFamily: "'Sora', sans-serif" }}>
+              {totalNotes || 25} Sets
             </div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>Available</div>
+            <div style={{ fontSize: 11.5, color: "var(--text-secondary)", fontWeight: 500 }}>Available</div>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(180, 255, 57, 0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#14151A", flexShrink: 0 }}>
-            <CheckCircle size={16} />
+        <div className="hero-stat-card" style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 6px", borderRadius: 8 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: "rgba(245, 158, 11, 0.14)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#F59E0B",
+              flexShrink: 0,
+            }}
+          >
+            <CheckCircle size={17} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", fontFamily: "'Sora', sans-serif" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", fontFamily: "'Sora', sans-serif" }}>
               100% Free
             </div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>Access</div>
+            <div style={{ fontSize: 11.5, color: "var(--text-secondary)", fontWeight: 500 }}>Full Access</div>
           </div>
         </div>
       </div>
 
-      <div style={{ position: "relative", maxWidth: 420 }}>
-        <Search size={16} color="#9A9A94" style={{ position: "absolute", left: 14, top: 13 }} />
+      {/* Quick Search Box */}
+      <div
+        className="hero-search-box"
+        style={{
+          position: "relative",
+          maxWidth: 440,
+          background: "var(--surface)",
+          border: "1.5px solid var(--border)",
+          borderRadius: 12,
+          display: "flex",
+          alignItems: "center",
+          boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+          zIndex: 1,
+        }}
+      >
+        <Search size={17} color="var(--text-muted)" style={{ marginLeft: 14, flexShrink: 0 }} />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search notes — e.g. Arrays, OOP..."
+          placeholder="Search notes — e.g. Arrays, OOP, System Design..."
           aria-label="Search notes"
-          className="focus-ring"
           style={{
-            width: "100%", background: "var(--bg-secondary)", border: "1.5px solid var(--border)", borderRadius: 9,
-            padding: "12px 14px 12px 40px", color: "var(--text-primary)", fontFamily: "Inter, sans-serif", fontSize: 13.5, outline: "none",
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            padding: "13px 14px",
+            color: "var(--text-primary)",
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 14,
+            outline: "none",
           }}
         />
+        {query && (
+          <button
+            onClick={() => setQuery("")}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: "4px 12px",
+              color: "var(--text-muted)",
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            Clear
+          </button>
+        )}
       </div>
-      <div style={{ marginTop: 14 }}>
+
+      {/* Live Active Students Counter */}
+      <div style={{ marginTop: 14, position: "relative", zIndex: 1 }}>
         <LiveCounter />
       </div>
-    </div>
+    </section>
   );
 }

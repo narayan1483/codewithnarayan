@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { HelpCircle, CheckCircle, XCircle, RotateCcw, Trophy, Sparkles, Plus, Trash2, Pencil, X, Check, ArrowRight } from "lucide-react";
+import { HelpCircle, CheckCircle, XCircle, RotateCcw, Trophy, Sparkles, Plus, Trash2, Pencil, X, Check, ArrowRight, ArrowLeft, ChevronUp } from "lucide-react";
 
 const INITIAL_QUIZ_QUESTIONS = [
   {
@@ -46,7 +46,15 @@ const INITIAL_QUIZ_QUESTIONS = [
 
 const QUIZ_STORAGE_KEY = "codewithnarayan_custom_quiz";
 
-export default function QuizSection({ onToast, isAdmin }) {
+const QUIZ_HIGHLIGHTS = [
+  "🏆 Daily Placement Quiz • Test Your SDE Concepts",
+  "🌲 DSA Patterns & Time Complexity Questions",
+  "☕ Java OOP, Interfaces & Streams MCQs",
+  "🗄️ DBMS & SQL Normalization Tests",
+  "📡 Operating Systems & Networking Concepts",
+];
+
+export default function QuizSection({ onToast, isAdmin, onCollapse }) {
   const [questions, setQuestions] = useState(() => {
     try {
       const saved = localStorage.getItem(QUIZ_STORAGE_KEY);
@@ -58,7 +66,7 @@ export default function QuizSection({ onToast, isAdmin }) {
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
-  const [modalMode, setModalMode] = useState(null); // 'add' | 'edit' | null
+  const [modalMode, setModalMode] = useState(null);
   const [editingQId, setEditingQId] = useState(null);
   const [qForm, setQForm] = useState({
     subject: "DSA",
@@ -67,6 +75,28 @@ export default function QuizSection({ onToast, isAdmin }) {
     answer: 0,
     explanation: "",
   });
+
+  // Typewriter ticker
+  const [typeIdx, setTypeIdx] = useState(0);
+  const [typeSubIdx, setTypeSubIdx] = useState(0);
+  const [typeDeleting, setTypeDeleting] = useState(false);
+
+  useEffect(() => {
+    if (QUIZ_HIGHLIGHTS.length === 0) return;
+    if (!typeDeleting && typeSubIdx === QUIZ_HIGHLIGHTS[typeIdx].length) {
+      const t = setTimeout(() => setTypeDeleting(true), 2200);
+      return () => clearTimeout(t);
+    }
+    if (typeDeleting && typeSubIdx === 0) {
+      setTypeDeleting(false);
+      setTypeIdx((p) => (p + 1) % QUIZ_HIGHLIGHTS.length);
+      return;
+    }
+    const t = setTimeout(() => setTypeSubIdx((p) => p + (typeDeleting ? -1 : 1)), typeDeleting ? 20 : 40);
+    return () => clearTimeout(t);
+  }, [typeSubIdx, typeDeleting, typeIdx]);
+
+  const typedHighlight = QUIZ_HIGHLIGHTS[typeIdx]?.substring(0, typeSubIdx) || "";
 
   useEffect(() => {
     try {
@@ -146,24 +176,124 @@ export default function QuizSection({ onToast, isAdmin }) {
   const answeredCount = Object.keys(selectedAnswers).length;
 
   return (
-    <div id="quiz" style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 20px 60px" }}>
+    <div
+      id="quiz"
+      className="notes-explorer-container"
+      style={{
+        maxWidth: 1080,
+        margin: "0 auto",
+        padding: "20px 20px 60px",
+        animation: "slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both",
+      }}
+    >
+      {/* Top Banner Toolbar with Back / Collapse button */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 10,
+          marginBottom: 20,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="hub-back-btn"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid var(--border)",
+                background: "var(--surface)",
+                color: "var(--text-primary)",
+                fontFamily: "'Sora', sans-serif",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Categories</span>
+            </button>
+          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 18 }}>🏆</span>
+            <span
+              style={{
+                fontFamily: "'Sora', sans-serif",
+                fontWeight: 800,
+                fontSize: 16,
+                color: "var(--text-primary)",
+              }}
+            >
+              Placement Quiz Explorer
+            </span>
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 11,
+                padding: "2px 7px",
+                borderRadius: 999,
+                background: "rgba(6, 182, 212, 0.12)",
+                color: "#06B6D4",
+                fontWeight: 700,
+              }}
+            >
+              {questions.length} Questions
+            </span>
+          </div>
+        </div>
+
+        {onCollapse && (
+          <button
+            onClick={onCollapse}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              background: "transparent",
+              border: "none",
+              color: "var(--text-secondary)",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "'Sora', sans-serif",
+            }}
+          >
+            <span>Collapse View</span>
+            <ChevronUp size={14} />
+          </button>
+        )}
+      </div>
+
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
-            background: "rgba(255, 138, 61, 0.1)",
-            color: "#FF8A3D",
-            padding: "4px 12px",
-            borderRadius: 20,
+            gap: 4,
+            background: "rgba(6, 182, 212, 0.08)",
+            border: "1px solid rgba(6, 182, 212, 0.2)",
+            borderRadius: 999,
+            padding: "5px 14px",
             fontSize: 12,
-            fontFamily: "'JetBrains Mono', monospace",
             fontWeight: 700,
+            color: "#06B6D4",
+            fontFamily: "'JetBrains Mono', monospace",
             marginBottom: 8,
+            maxWidth: "96%",
+            overflow: "hidden",
+            boxShadow: "0 2px 8px rgba(6, 182, 212, 0.08)",
           }}
         >
-          <HelpCircle size={14} /> Quick Daily Challenge
+          <span style={{ whiteSpace: "nowrap" }}>{typedHighlight}</span>
+          <span className="hub-typewriter-cursor" style={{ color: "#06B6D4" }}>|</span>
         </div>
         <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 8px" }}>
           Daily Interview Placement Quiz

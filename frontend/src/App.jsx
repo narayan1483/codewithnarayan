@@ -4,6 +4,7 @@ import Header from "./components/Header.jsx";
 import Hero from "./components/Hero.jsx";
 import RecentlyViewed from "./components/RecentlyViewed.jsx";
 import TrendingSection from "./components/TrendingSection.jsx";
+import CategoryHubSection from "./components/CategoryHubSection.jsx";
 import NotesSection from "./components/NotesSection.jsx";
 import RoadmapSection from "./components/RoadmapSection.jsx";
 import CheatsheetSection from "./components/CheatsheetSection.jsx";
@@ -62,6 +63,10 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(() => !!getAdminPassword());
   const [adminStats, setAdminStats] = useState(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+  const [isCheatsheetsExpanded, setIsCheatsheetsExpanded] = useState(false);
+  const [isBundlesExpanded, setIsBundlesExpanded] = useState(false);
+  const [isQuizExpanded, setIsQuizExpanded] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem("codewithnarayan_theme") || "light");
   const { toasts, showToast } = useToasts();
 
@@ -185,10 +190,15 @@ export default function App() {
 
   const filtered = useMemo(() => {
     let list = notes.filter((n) => {
+      const s1 = (n.subject || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const s2 = active.toLowerCase().replace(/[^a-z0-9]/g, "");
       const matchesSubject =
         active === "all" ||
         active === "wishlist" ||
-        (n.subject || "").toLowerCase().replace(/[^a-z]/g, "") === active.toLowerCase().replace(/[^a-z]/g, "");
+        s1 === s2 ||
+        (s2.includes("system") && s1.includes("system")) ||
+        ((s2.includes("placement") || s2.includes("interview")) && (s1.includes("placement") || s1.includes("interview")));
+
       const matchesWishlist = active !== "wishlist" || wishlist.has(n.id);
       const matchesQuery =
         n.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -250,8 +260,74 @@ export default function App() {
   };
 
   const scrollToSection = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (id === "notes") {
+      setIsNotesExpanded(true);
+    }
+    if (id === "cheatsheets") {
+      setIsCheatsheetsExpanded(true);
+    }
+    if (id === "bundles") {
+      setIsBundlesExpanded(true);
+    }
+    if (id === "quiz") {
+      setIsQuizExpanded(true);
+    }
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }, 80);
+  };
+
+  const isNotesActive = isNotesExpanded || query.trim().length > 0 || active !== "all" || filterTag !== "all";
+
+  const handleOpenCheatsheets = () => {
+    setIsCheatsheetsExpanded((prev) => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => scrollToSection("cheatsheets"), 80);
+      }
+      return next;
+    });
+  };
+
+  const handleOpenBundles = () => {
+    setIsBundlesExpanded((prev) => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => scrollToSection("bundles"), 80);
+      }
+      return next;
+    });
+  };
+
+  const handleOpenQuiz = () => {
+    setIsQuizExpanded((prev) => {
+      const next = !prev;
+      if (next) {
+        setTimeout(() => scrollToSection("quiz"), 80);
+      }
+      return next;
+    });
+  };
+
+  const handleOpenSystemDesign = () => {
+    const match = notes.find((n) => (n.subject || "").toLowerCase().includes("system"));
+    const targetSubject = match ? match.subject : "System Design";
+    setActive(targetSubject);
+    setIsNotesExpanded(true);
+    setTimeout(() => scrollToSection("notes"), 80);
+  };
+
+  const handleOpenInterviewQuestions = () => {
+    const match = notes.find(
+      (n) =>
+        (n.subject || "").toLowerCase().includes("placement") ||
+        (n.subject || "").toLowerCase().includes("interview")
+    );
+    const targetSubject = match ? match.subject : "Placement Preparation";
+    setActive(targetSubject);
+    setIsNotesExpanded(true);
+    setTimeout(() => scrollToSection("notes"), 80);
   };
 
   return (
@@ -276,9 +352,34 @@ export default function App() {
         onRequestClick={() => setRequestModalOpen(true)}
       />
 
-      <RecentlyViewed recentNotes={recentNotesList} onOpen={handleOpenNote} />
-
-      <TrendingSection notes={notes} onOpen={handleOpenNote} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
+      <CategoryHubSection
+        totalNotes={notes.length}
+        onOpenAllNotes={() => {
+          setIsNotesExpanded((prev) => {
+            const nextState = !prev;
+            if (nextState) {
+              setTimeout(() => scrollToSection("notes"), 80);
+            }
+            return nextState;
+          });
+        }}
+        isNotesExpanded={isNotesActive}
+        onOpenCheatsheets={handleOpenCheatsheets}
+        isCheatsheetsExpanded={isCheatsheetsExpanded}
+        onOpenBundles={handleOpenBundles}
+        isBundlesExpanded={isBundlesExpanded}
+        onOpenQuiz={handleOpenQuiz}
+        isQuizExpanded={isQuizExpanded}
+        onOpenSystemDesign={handleOpenSystemDesign}
+        onOpenInterviewQuestions={handleOpenInterviewQuestions}
+        onSelectCategory={(subj) => {
+          setActive(subj);
+          setIsNotesExpanded(true);
+          setTimeout(() => scrollToSection("notes"), 80);
+        }}
+        onScrollTo={scrollToSection}
+        isAdmin={isAdmin}
+      />
 
       {loadError ? (
         <div style={{ maxWidth: 1080, margin: "0 auto", padding: "20px", textAlign: "center" }}>
@@ -290,27 +391,66 @@ export default function App() {
           </div>
         </div>
       ) : (
-        <NotesSection
-          active={active}
-          setActive={setActive}
-          filterTag={filterTag}
-          setFilterTag={setFilterTag}
-          filtered={filtered}
-          notes={notes}
-          loading={loading}
-          query={query}
-          onOpen={handleOpenNote}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          wishlist={wishlist}
-          onToggleWishlist={toggleWishlist}
-          onRequestClick={() => setRequestModalOpen(true)}
+        isNotesActive && (
+          <>
+            <RecentlyViewed recentNotes={recentNotesList} onOpen={handleOpenNote} />
+            <TrendingSection notes={notes} onOpen={handleOpenNote} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
+            <NotesSection
+              active={active}
+              setActive={setActive}
+              filterTag={filterTag}
+              setFilterTag={setFilterTag}
+              filtered={filtered}
+              notes={notes}
+              loading={loading}
+              query={query}
+              onOpen={handleOpenNote}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              wishlist={wishlist}
+              onToggleWishlist={toggleWishlist}
+              onRequestClick={() => setRequestModalOpen(true)}
+              onCollapse={() => {
+                setIsNotesExpanded(false);
+                setActive("all");
+                setFilterTag("all");
+                scrollToSection("categories");
+              }}
+            />
+          </>
+        )
+      )}
+
+      {isCheatsheetsExpanded && (
+        <CheatsheetSection
+          onCopyToast={showToast}
+          isAdmin={isAdmin}
+          onCollapse={() => {
+            setIsCheatsheetsExpanded(false);
+            scrollToSection("categories");
+          }}
         />
       )}
 
-      <RoadmapSection onFilterNotesBySubject={(subj) => { setActive(subj); scrollToSection("notes"); }} isAdmin={isAdmin} />
-      <CheatsheetSection onCopyToast={showToast} isAdmin={isAdmin} />
-      <QuizSection onToast={showToast} isAdmin={isAdmin} />
+      {isQuizExpanded && (
+        <QuizSection
+          onToast={showToast}
+          isAdmin={isAdmin}
+          onCollapse={() => {
+            setIsQuizExpanded(false);
+            scrollToSection("categories");
+          }}
+        />
+      )}
+
+      <RoadmapSection
+        onFilterNotesBySubject={(subj) => {
+          setActive(subj);
+          setIsNotesExpanded(true);
+          scrollToSection("notes");
+        }}
+        isAdmin={isAdmin}
+      />
       <BundlesSection allNotes={notes} onOpenBundle={openBundle} />
       <AboutSection />
       <ContactSection onSend={handleContactSend} />
@@ -348,7 +488,11 @@ export default function App() {
         onSelectSection={scrollToSection}
       />
       <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
-      <BottomNav onChatToggle={() => setChatOpen((v) => !v)} wishlistCount={wishlist.size} />
+      <BottomNav
+        onChatToggle={() => setChatOpen((v) => !v)}
+        onOpenQuiz={handleOpenQuiz}
+        wishlistCount={wishlist.size}
+      />
       <ToastStack toasts={toasts} />
     </div>
   );
